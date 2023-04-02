@@ -11,8 +11,8 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-    - name: Run tf plan
-      run: |
-        cd staging/tf/
-        terraform init
-        terraform plan -out tplan -var 'do_token=${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}'
+      - name: Run tf plan
+        run: |
+          cd staging/tf/
+          terraform init
+          terraform plan -out tplan -var 'do_token=${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}'
