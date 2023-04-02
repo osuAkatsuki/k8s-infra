@@ -69,3 +69,10 @@ resource "template_file" "openvpn_userdata" {
 output "droplet_ip" {
   value = digitalocean_droplet.openvpn-server.ipv4_address
 }
+
+# Create container registry
+resource "digitalocean_container_registry" "akatsuki-staging" {
+  name                   = "akatsuki-staging"
+  subscription_tier_slug = "starter"
+  region                 = "tor1"
+}
