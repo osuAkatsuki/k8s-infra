@@ -10,6 +10,7 @@ terraform {
 # Set the variable value in *.tfvars file
 # or using -var="do_token=..." CLI option
 variable "do_token" {}
+variable "do_ssh_key" {}
 
 # Configure the DigitalOcean Provider
 provider "digitalocean" {
@@ -49,4 +50,22 @@ resource "digitalocean_database_cluster" "redis-staging" {
   size       = "db-s-1vcpu-1gb"
   region     = "tor1"
   node_count = 1
+}
+
+# Create a droplet running openvpn server
+resource "digitalocean_droplet" "openvpn-server" {
+  image     = "ubuntu-20-04-x64"
+  name      = "openvpn-server"
+  region    = "tor1"
+  size      = "s-1vcpu-1gb"
+  ssh_keys  = ["${var.do_ssh_key}"]
+  user_data = template_file.openvpn_userdata.rendered
+}
+
+resource "template_file" "openvpn_userdata" {
+  template = "openvpn.yml"
+}
+
+output "droplet_ip" {
+  value = digitalocean_droplet.openvpn-server.ipv4_address
 }
