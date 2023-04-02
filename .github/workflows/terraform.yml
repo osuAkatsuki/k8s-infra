@@ -16,3 +16,17 @@ jobs:
           cd staging/tf/
           terraform init
           terraform plan -out tplan -var 'do_token=${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}'
+
+  # tf-apply-staging:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check out latest commit
+  #       uses: actions/checkout@v3
+
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v2
+
+  #     - name: Run tf apply
+  #       run: |
+  #         cd staging/tf/
+  #         terraform apply tplan
