@@ -3,3 +3,4 @@
 tplan
 *.tfstate
 *.tfstate.backup
+*.tfvars
