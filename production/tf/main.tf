@@ -52,3 +52,16 @@ resource "digitalocean_database_cluster" "redis-production" {
   region     = "tor1"
   node_count = 1
 }
+
+# Create a droplet running algo vpn
+# https://github.com/trailofbits/algo
+resource "digitalocean_droplet" "vpn-production" {
+  image  = "ubuntu-22-04-x64"
+  name   = "vpn-production"
+  region = "tor1"
+  size   = "s-1vcpu-1gb"
+}
+
+output "droplet_ip" {
+  value = digitalocean_droplet.vpn-production.ipv4_address
+}

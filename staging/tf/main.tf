@@ -12,7 +12,6 @@ terraform {
 # Set the variable value in *.tfvars file
 # or using -var="do_token=..." CLI option
 variable "do_token" {}
-variable "do_ssh_key" {}
 
 # Configure the DigitalOcean Provider
 provider "digitalocean" {
@@ -23,7 +22,7 @@ provider "digitalocean" {
 resource "digitalocean_kubernetes_cluster" "akatsuki-staging-k8s" {
   name    = "akatsuki-staging"
   region  = "tor1"
-  version = "1.25.4-do.0"
+  version = "1.26.3-do.0"
 
   node_pool {
     name       = "autoscale-worker-pool"
@@ -52,4 +51,17 @@ resource "digitalocean_database_cluster" "redis-staging" {
   size       = "db-s-1vcpu-1gb"
   region     = "tor1"
   node_count = 1
+}
+
+# Create a droplet running algo vpn
+# https://github.com/trailofbits/algo
+resource "digitalocean_droplet" "vpn-staging" {
+  image  = "ubuntu-22-04-x64"
+  name   = "vpn-staging"
+  region = "tor1"
+  size   = "s-1vcpu-1gb"
+}
+
+output "droplet_ip" {
+  value = digitalocean_droplet.vpn-staging.ipv4_address
 }

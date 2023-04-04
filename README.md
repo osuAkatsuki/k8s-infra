@@ -41,4 +41,7 @@ cd ..
 
 # Configure ingress
 kubectl apply -f k8s/ingress.yaml
+
+# TODO: documentation for setting up algo
+# https://zeltser.com/deploy-algo-vpn-digital-ocean/
 ```
