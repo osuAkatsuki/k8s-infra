@@ -1,4 +1,4 @@
-# These resources will be used exclusively by the staging environment
+# These resources will be used exclusively by the production environment
 
 terraform {
   required_providers {
@@ -12,7 +12,6 @@ terraform {
 # Set the variable value in *.tfvars file
 # or using -var="do_token=..." CLI option
 variable "do_token" {}
-variable "do_ssh_key" {}
 
 # Configure the DigitalOcean Provider
 provider "digitalocean" {
@@ -20,10 +19,10 @@ provider "digitalocean" {
 }
 
 # Create a new k8s cluster
-resource "digitalocean_kubernetes_cluster" "akatsuki-staging-k8s" {
-  name    = "akatsuki-staging"
+resource "digitalocean_kubernetes_cluster" "akatsuki-production-k8s" {
+  name    = "akatsuki-production"
   region  = "tor1"
-  version = "1.25.4-do.0"
+  version = "1.26.3-do.0"
 
   node_pool {
     name       = "autoscale-worker-pool"
@@ -35,8 +34,8 @@ resource "digitalocean_kubernetes_cluster" "akatsuki-staging-k8s" {
 }
 
 # Create a postgres database
-resource "digitalocean_database_cluster" "postgres-staging" {
-  name       = "postgres-cluster-staging"
+resource "digitalocean_database_cluster" "postgres-production" {
+  name       = "postgres-cluster-production"
   engine     = "pg"
   version    = "15"
   size       = "db-s-1vcpu-1gb"
@@ -45,8 +44,8 @@ resource "digitalocean_database_cluster" "postgres-staging" {
 }
 
 # Create a redis database
-resource "digitalocean_database_cluster" "redis-staging" {
-  name       = "redis-cluster-staging"
+resource "digitalocean_database_cluster" "redis-production" {
+  name       = "redis-cluster-production"
   engine     = "redis"
   version    = "5"
   size       = "db-s-1vcpu-1gb"
