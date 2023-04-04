@@ -45,3 +45,21 @@ kubectl apply -f k8s/ingress.yaml
 # TODO: documentation for setting up algo
 # https://zeltser.com/deploy-algo-vpn-digital-ocean/
 ```
+
+## Adding vault injection for a service
+This should likely be done automatically; just not sure where yet.
+```sh
+kubectl exec -it vault-0 -- /bin/sh
+vault policy write users-service-staging - <<EOF
+path "internal/data/database/config" {
+  capabilities = ["read"]
+}
+EOF
+vault write auth/kubernetes/role/users-service-staging \
+    bound_service_account_names=users-service-staging \
+    bound_service_account_namespaces=default \
+    policies=users-service-staging \
+    ttl=24h
+exit
+kubectl create serviceaccount users-service-staging
+```
