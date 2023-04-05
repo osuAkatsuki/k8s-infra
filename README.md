@@ -52,7 +52,7 @@ This should likely be done automatically; just not sure where yet.
 kubectl exec -it vault-0 -- /bin/sh
 
 vault policy write users-service-staging - <<EOF
-path "internal/data/database/config" {
+path "services/data/staging/users-service" {
   capabilities = ["read"]
 }
 EOF
