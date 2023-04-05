@@ -6,9 +6,9 @@
 ```sh
 # Provision infra
 cd shared/tf
-tf init
-tf plan -out tplan
-tf apply tplan
+terraform init
+terraform plan -out tplan
+terraform apply tplan
 
 # Install nginx-ingress-controller
 helm repo add nginx-stable https://helm.nginx.com/stable
@@ -41,9 +41,9 @@ cd staging # or production
 
 # Provision infra
 cd tf
-tf init
-tf plan -out tplan
-tf apply tplan
+terraform init
+terraform plan -out tplan
+terraform apply tplan
 cd ..
 
 # Configure ingress
