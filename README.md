@@ -26,6 +26,13 @@ vault login
 vault auth enable kubernetes
 vault write auth/kubernetes/config kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443"
 exit
+
+# Setup datadog-agent
+helm repo add datadog https://helm.datadoghq.com
+helm install datadog-agent-staging -f datadog-values.yaml \
+  --set datadog.site='datadoghq.com' \
+  --set datadog.apiKey=$YOUR_DATADOG_API_KEY \
+  datadog/datadog
 ```
 
 ## Apply a specific environment's components
@@ -62,7 +69,7 @@ vault write auth/kubernetes/role/users-service-staging \
     bound_service_account_namespaces=default \
     policies=users-service-staging \
     ttl=24h
-    
+
 exit
 
 kubectl create serviceaccount users-service-staging

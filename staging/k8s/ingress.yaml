@@ -9,8 +9,8 @@ spec:
     - host: "next.akatsuki.gg"
       http:
         paths:
-        - pathType: Prefix
-          path: "/api/users"
+        - path: "/"
+          pathType: Prefix
           backend:
             service:
               name: users-service-staging
