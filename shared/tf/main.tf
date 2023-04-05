@@ -21,6 +21,6 @@ provider "digitalocean" {
 # Create container registry
 resource "digitalocean_container_registry" "akatsuki" {
   name                   = "akatsuki"
-  subscription_tier_slug = "starter"
+  subscription_tier_slug = "basic"
   region                 = "nyc3"
 }
