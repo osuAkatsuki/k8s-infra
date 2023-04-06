@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+read -p "Environment: " environment
+if [ "$environment" != "staging" ] && [ "$environment" != "production" ]; then
+    echo "Invalid environment: $environment"
+    exit 1
+fi
+
 # Provision shared infra components
 cd shared/tf
 terraform init
@@ -8,8 +14,8 @@ terraform plan -out tplan
 terraform apply tplan
 cd ../..
 
-# Provision staging (or production) infra components
-cd staging/tf
+# Provision environment-specific infra components
+cd $environment/tf
 terraform init
 terraform plan -out tplan
 terraform apply tplan
@@ -31,6 +37,7 @@ kubectl exec -it vault-0 -- sh -c ' \
     vault auth enable kubernetes && \
     vault write auth/kubernetes/config kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443"'
 
+# Add kubernetes auth policies for each service
 services=(
     users-service
     akatsuki-api
@@ -38,24 +45,44 @@ services=(
 )
 for service in "${services[@]}"
 do
-    kubectl exec -i vault-0 -- vault policy write $service-staging - <<EOF
-path "services/data/staging/$service" {
+    kubectl exec -i vault-0 -- vault policy write $service-$environment - <<EOF
+path "services/data/$environment/$service" {
 capabilities = ["read"]
 }
 EOF
 
-    kubectl exec -it vault-0 -- vault write auth/kubernetes/role/$service-staging \
-        bound_service_account_names=$service-staging \
+    kubectl exec -it vault-0 -- vault write auth/kubernetes/role/$service-$environment \
+        bound_service_account_names=$service-$environment \
         bound_service_account_namespaces=default \
-        policies=$service-staging \
+        policies=$service-$environment \
         ttl=24h
 
-    kubectl create serviceaccount $service-staging
+    kubectl create serviceaccount $service-$environment
+done
+
+# Add userpass auth policies for each staff member
+staff_members=(
+    "josh"
+    "james"
+    "lenforiee"
+    "flame"
+)
+for staff_member in "${staff_members[@]}"
+do
+    kubectl exec -it vault-0 -- vault policy write $staff_member-$environment - <<EOF
+path "services/data/$environment/*" {
+capabilities = ["read"]
+}
+EOF
+
+    kubectl exec -it vault-0 -- vault write auth/userpass/users/$staff_member-$environment \
+        password=$staff_member-$environment \
+        policies=$staff_member-$environment
 done
 
 # Setup datadog-agent
 helm repo add datadog https://helm.datadoghq.com
-helm install datadog-agent-staging -f datadog-values.yaml \
+helm install datadog-agent-$environment -f datadog-values.yaml \
   --set datadog.site='datadoghq.com' \
   --set datadog.apiKey=$YOUR_DATADOG_API_KEY \
   datadog/datadog
