@@ -34,6 +34,11 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 helm repo update
 helm install vault hashicorp/vault
 
+# Setup vault for storing service secrets
+kubectl exec -it vault-0 -- sh -c ' \
+    vault login && \
+    vault secrets enable -path=services/ -version=2 kv'
+
 # Setup vault-agent for k8s auth
 kubectl exec -it vault-0 -- sh -c ' \
     vault login && \
