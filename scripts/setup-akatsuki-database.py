@@ -86,7 +86,7 @@ async def main():
             # read user
             await db.execute(
                 "CREATE USER :username@'%' IDENTIFIED BY :password",
-                {"username": f"{service}_read", "password": secrets.token_urlsafe(16)},
+                {"username": f"{service}_read", "password": secrets.token_urlsafe(32)},
             )
             await db.execute(
                 "GRANT SELECT ON akatsuki.* TO :username@'%'",
@@ -96,7 +96,7 @@ async def main():
             # write user
             await db.execute(
                 "CREATE USER :username@'%' IDENTIFIED BY :password",
-                {"username": f"{service}_write", "password": secrets.token_urlsafe(16)},
+                {"username": f"{service}_write", "password": secrets.token_urlsafe(32)},
             )
             await db.execute(
                 # NOTE: the write usually ideally should not have DELETE
