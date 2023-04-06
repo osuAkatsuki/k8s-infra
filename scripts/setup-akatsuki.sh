@@ -65,6 +65,19 @@ kubectl exec -it vault-0 -- sh -c ' \
     vault login && \
     vault auth enable userpass'
 
+# Create staff vault policies for staging & production
+kubectl exec -it vault-0 -- vault policy write staff-access-staging - <<EOF
+path "services/data/staging/*" {
+capabilities = ["read"]
+}
+EOF
+
+kubectl exec -it vault-0 -- vault policy write staff-access-production - <<EOF
+path "services/data/production/*" {
+capabilities = ["read"]
+}
+EOF
+
 # Add userpass auth policies for each staff member
 staff_members=(
     "josh"
@@ -74,15 +87,13 @@ staff_members=(
 )
 for staff_member in "${staff_members[@]}"
 do
-    kubectl exec -it vault-0 -- vault policy write $staff_member-$environment - <<EOF
-path "services/data/$environment/*" {
-capabilities = ["read"]
-}
-EOF
+    # give staff unconditional access to all services in staging & production
+    # TODO: this is bad practice for production; limit these further?
+    kubectl exec -it vault-0 -- vault write auth/userpass/users/$staff_member \
+        password=$vault_user_pass \
+        policies=staff-access-staging,staff-access-production
 
-    kubectl exec -it vault-0 -- vault write auth/userpass/users/$staff_member-$environment \
-        password=$staff_member-$environment \
-        policies=$staff_member-$environment
+    echo "$staff_member with password $vault_user_pass" >> vault_accounts.txt
 done
 
 # Setup datadog-agent
