@@ -38,7 +38,7 @@ resource "digitalocean_database_cluster" "mysql-staging" {
   name       = "mysql-cluster-staging"
   engine     = "mysql"
   version    = "8"
-  size       = "db-s-1vcpu-1gb"
+  size       = "db-s-1vcpu-2gb"
   region     = "tor1"
   node_count = 1
 }

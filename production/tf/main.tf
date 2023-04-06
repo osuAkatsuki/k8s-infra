@@ -48,7 +48,7 @@ resource "digitalocean_database_cluster" "postgres-production" {
   name       = "postgres-cluster-production"
   engine     = "pg"
   version    = "15"
-  size       = "db-s-1vcpu-1gb"
+  size       = "db-s-1vcpu-2gb"
   region     = "tor1"
   node_count = 1
 }
