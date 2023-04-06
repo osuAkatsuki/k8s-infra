@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# This script can be quite useful in tandem with
+# mysqldump -u root -p --opt --where="1 limit 50000" akatsuki > local.sql
+
 import argparse
 import asyncio
 import logging
