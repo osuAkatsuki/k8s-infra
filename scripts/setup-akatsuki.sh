@@ -60,6 +60,11 @@ EOF
     kubectl create serviceaccount $service-$environment
 done
 
+# Setup vault-agent for userpass auth
+kubectl exec -it vault-0 -- sh -c ' \
+    vault login && \
+    vault auth enable userpass'
+
 # Add userpass auth policies for each staff member
 staff_members=(
     "josh"
