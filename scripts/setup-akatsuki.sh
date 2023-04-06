@@ -81,10 +81,11 @@ EOF
 done
 
 # Setup datadog-agent
+read -p "Datadog API key (API, not APP): " datadog_api_key
 helm repo add datadog https://helm.datadoghq.com
 helm install datadog-agent-$environment -f datadog-values.yaml \
   --set datadog.site='datadoghq.com' \
-  --set datadog.apiKey=$YOUR_DATADOG_API_KEY \
+  --set datadog.apiKey=$datadog_api_key \
   datadog/datadog
 
 # Configure ingress
