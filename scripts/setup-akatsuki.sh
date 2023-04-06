@@ -1,6 +1,31 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+# Provision shared infra components
+cd shared/tf
+terraform init
+terraform plan -out tplan
+terraform apply tplan
+cd ../..
+
+# Provision staging (or production) infra components
+cd staging/tf
+terraform init
+terraform plan -out tplan
+terraform apply tplan
+cd ../..
+
+# Install nginx-ingress-controller
+helm repo add nginx-stable https://helm.nginx.com/stable
+helm repo update
+helm install nginx-ingress nginx-stable/nginx-ingress
+
+# Install vault
+helm repo add hashicorp https://helm.releases.hashicorp.com
+helm repo update
+helm install vault hashicorp/vault
+
+# Setup vault-agent for k8s auth
 kubectl exec -it vault-0 -- sh -c ' \
     vault login && \
     vault auth enable kubernetes && \
@@ -28,6 +53,20 @@ EOF
     kubectl create serviceaccount $service-staging
 done
 
+# Setup datadog-agent
+helm repo add datadog https://helm.datadoghq.com
+helm install datadog-agent-staging -f datadog-values.yaml \
+  --set datadog.site='datadoghq.com' \
+  --set datadog.apiKey=$YOUR_DATADOG_API_KEY \
+  datadog/datadog
+
+# Configure ingress
+kubectl apply -f k8s/ingress.yaml
+
+# # TODO: setup instructions for our vpn (running algo)
+# https://zeltser.com/deploy-algo-vpn-digital-ocean/
+
+# Import database
 if [ -n "akatsuki.sql" ]; then
     echo "importing akatsuki.sql"
 
