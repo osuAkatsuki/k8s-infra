@@ -33,6 +33,16 @@ resource "digitalocean_kubernetes_cluster" "akatsuki-staging-k8s" {
   }
 }
 
+# Create a mysql database
+resource "digitalocean_database_cluster" "mysql-staging" {
+  name       = "mysql-cluster-staging"
+  engine     = "mysql"
+  version    = "8"
+  size       = "db-s-1vcpu-1gb"
+  region     = "tor1"
+  node_count = 1
+}
+
 # Create a postgres database
 resource "digitalocean_database_cluster" "postgres-staging" {
   name       = "postgres-cluster-staging"
