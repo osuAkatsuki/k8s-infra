@@ -73,3 +73,4 @@ vault write auth/kubernetes/role/users-service-staging \
 exit
 
 kubectl create serviceaccount users-service-staging
+```
