@@ -26,6 +26,9 @@ helm repo add nginx-stable https://helm.nginx.com/stable
 helm repo update
 helm install nginx-ingress nginx-stable/nginx-ingress
 
+# Configure ingress settings to our liking
+kubectl apply -f k8s/ingress.yaml
+
 # Install vault
 helm repo add hashicorp https://helm.releases.hashicorp.com
 helm repo update
@@ -103,9 +106,6 @@ helm install datadog-agent-$environment -f datadog-values.yaml \
   --set datadog.site='datadoghq.com' \
   --set datadog.apiKey=$datadog_api_key \
   datadog/datadog
-
-# Configure ingress
-kubectl apply -f k8s/ingress.yaml
 
 # # TODO: setup instructions for our vpn (running algo)
 # https://zeltser.com/deploy-algo-vpn-digital-ocean/
