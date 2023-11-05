@@ -14,18 +14,17 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: engineers
-  namespace: default
 subjects:
-- Kind: User
-  Name: josh
+- kind: User
+  name: josh
   apiGroup: rbac.authorization.k8s.io
-- Kind: User
-  Name: james
+- kind: User
+  name: james
   apiGroup: rbac.authorization.k8s.io
-- Kind: User
-  Name: flame
+- kind: User
+  name: flame
   apiGroup: rbac.authorization.k8s.io
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: engineer
   apiGroup: rbac.authorization.k8s.io
