@@ -1,0 +1,31 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: engineer
+rules:
+- apiGroups: [""] # core api group
+  resources: ["pods", "cronjobs", "jobs", "services", "deployments", "replicasets", "serviceaccounts"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: engineers
+  namespace: default
+subjects:
+- Kind: User
+  Name: josh
+  apiGroup: rbac.authorization.k8s.io
+- Kind: User
+  Name: james
+  apiGroup: rbac.authorization.k8s.io
+- Kind: User
+  Name: flame
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: engineer
+  apiGroup: rbac.authorization.k8s.io
