@@ -1,17 +1,17 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   namespace: default
   name: engineer
 rules:
 - apiGroups: [""] # core api group
-  resources: ["pods", "cronjobs", "jobs", "services", "deployments", "replicasets", "serviceaccounts"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  resources: ["pods", "nodes", "cronjobs", "jobs", "services", "deployments", "replicasets", "serviceaccounts"]
+  verbs: ["get", "list", "watch", "create", "delete"]
 
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: engineers
   namespace: default
