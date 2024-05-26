@@ -4,7 +4,7 @@ metadata:
   namespace: default
   name: engineer
 rules:
-- apiGroups: ["apps"] # core api group
+- apiGroups: ["", "apps"] # core api group
   resources: ["pods", "pods/log", "nodes", "cronjobs", "jobs", "services", "deployments", "replicasets", "serviceaccounts", "events", "pods/portforward"]
   verbs: ["get", "list", "watch", "create", "delete"]
 
