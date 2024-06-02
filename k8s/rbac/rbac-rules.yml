@@ -5,7 +5,7 @@ metadata:
   name: engineer
 rules:
 - apiGroups: ["", "apps"] # core api group
-  resources: ["pods", "pods/log", "nodes", "cronjobs", "jobs", "services", "deployments", "replicasets", "serviceaccounts", "events", "pods/portforward", "pods/exec"]
+  resources: ["pods", "pods/log", "nodes", "cronjobs", "jobs", "services", "deployments", "replicasets", "serviceaccounts", "events", "pods/portforward", "pods/exec", "cronjobs"]
   verbs: ["get", "list", "watch", "create", "delete"]
 
 ---
