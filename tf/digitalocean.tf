@@ -1,3 +1,11 @@
+
+variable "do_token" {}
+variable "pvt_key" {}
+
+data "digitalocean_ssh_key" "cmyui_ssh_key" {
+  name = "cmyui desktop"
+}
+
 resource "digitalocean_project" "akatsuki-production" {
   name        = "akatsuki-production"
   description = null

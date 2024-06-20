@@ -4,16 +4,18 @@ terraform {
       source  = "digitalocean/digitalocean"
       version = "~> 2.0"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4"
+    }
   }
 }
 
-variable "do_token" {}
-variable "pvt_key" {}
 
 provider "digitalocean" {
   token = var.do_token
 }
 
-data "digitalocean_ssh_key" "cmyui_ssh_key" {
-  name = "cmyui desktop"
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
