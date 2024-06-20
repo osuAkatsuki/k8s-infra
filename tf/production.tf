@@ -72,7 +72,6 @@ resource "digitalocean_droplet" "k8s-worker04-droplet" {
   vpc_uuid    = digitalocean_vpc.akatsuki-production-vpc.id
 }
 
-# digitalocean_droplet.mysql-master01-droplet:
 resource "digitalocean_droplet" "mysql-master01-droplet" {
   region      = "tor1"
   name        = "mysql-master01.akatsuki.gg"
@@ -84,7 +83,6 @@ resource "digitalocean_droplet" "mysql-master01-droplet" {
   vpc_uuid    = digitalocean_vpc.akatsuki-production-vpc.id
 }
 
-# digitalocean_droplet.rabbitmq-worker01-droplet:
 resource "digitalocean_droplet" "rabbitmq-worker01-droplet" {
   region      = "tor1"
   name        = "rabbitmq-worker01.akatsuki.gg"
