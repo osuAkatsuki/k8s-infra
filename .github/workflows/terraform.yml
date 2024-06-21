@@ -130,6 +130,11 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
+    - name: Write Kubeconfig to Disk
+      run: |
+        mkdir ~/.kube
+        echo "$KUBECONFIG" > ~/.kube/config
+
     - name: Terraform Init
       working-directory: ./tf
       run: terraform init
