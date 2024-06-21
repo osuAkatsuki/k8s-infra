@@ -47,7 +47,7 @@ jobs:
         export exitcode=0
         terraform plan \
         -var "do_token=$DIGITALOCEAN_TOKEN" \
-        -var "private_key=$PRIVATE_SSH_KEY" \
+        -var "pvt_key=$PRIVATE_SSH_KEY" \
         -var "cloudflare_api_token=$CLOUDFLARE_API_TOKEN" \
         -var "cloudflare_zone_id=$CLOUDFLARE_ZONE_ID" \
         -var "cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID" \
@@ -137,7 +137,7 @@ jobs:
       working-directory: ./tf
       run: terraform apply  \
         -var "do_token=$DIGITALOCEAN_TOKEN" \
-        -var "private_key=$PRIVATE_SSH_KEY" \
+        -var "pvt_key=$PRIVATE_SSH_KEY" \
         -var "cloudflare_api_token=$CLOUDFLARE_API_TOKEN" \
         -var "cloudflare_zone_id=$CLOUDFLARE_ZONE_ID" \
         -var "cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID" \
