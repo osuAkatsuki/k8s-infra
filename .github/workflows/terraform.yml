@@ -1,4 +1,4 @@
-name: 'Terraform Plan/Apply'
+name: 'Terraform'
 
 on:
   push:
@@ -25,13 +25,16 @@ jobs:
         terraform_wrapper: false
 
     - name: Terraform Init
+      working-directory: ./tf
       run: terraform init
 
     - name: Terraform Format
+      working-directory: ./tf
       run: terraform fmt -check
 
     - name: Terraform Plan
       id: tf-plan
+      working-directory: ./tf
       run: |
         export exitcode=0
         terraform plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
@@ -53,6 +56,7 @@ jobs:
 
     - name: Create String Output
       id: tf-plan-string
+      working-directory: ./tf
       run: |
         TERRAFORM_PLAN=$(terraform show -no-color tfplan)
 
@@ -103,6 +107,7 @@ jobs:
       uses: hashicorp/setup-terraform@v3
 
     - name: Terraform Init
+      working-directory: ./tf
       run: terraform init
 
     - name: Download Terraform Plan
@@ -111,4 +116,5 @@ jobs:
         name: tfplan
 
     - name: Terraform Apply
+      working-directory: ./tf
       run: terraform apply -auto-approve tfplan
