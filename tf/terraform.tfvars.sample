@@ -5,3 +5,6 @@ cloudflare_api_token = ""
 cloudflare_zone_id = ""
 cloudflare_account_id = ""
 cloudflare_domain = "akatsuki.gg"
+
+aws_access_key = "3NHMGDTS6WIE2BAXIEVN"
+aws_secret_key = "o85U3c4ela5TyWzeDNXnc1OUzPZCo9eBdqB6M72A"
