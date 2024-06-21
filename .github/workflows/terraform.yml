@@ -146,7 +146,7 @@ jobs:
 
     - name: Terraform Apply
       working-directory: ./tf
-      run: terraform apply  \
+      run: terraform apply \
         -var "do_token=$DIGITALOCEAN_TOKEN" \
         -var "pvt_key=$PRIVATE_SSH_KEY" \
         -var "cloudflare_api_token=$CLOUDFLARE_API_TOKEN" \
