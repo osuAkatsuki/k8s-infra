@@ -58,7 +58,6 @@ jobs:
         -var "cloudflare_zone_id=$CLOUDFLARE_ZONE_ID" \
         -var "cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID" \
         -var "cloudflare_domain=$CLOUDFLARE_DOMAIN" \
-        -var "kubeconfig=$KUBECONFIG" \
         -detailed-exitcode \
         -no-color \
         -out tfplan \
@@ -149,6 +148,5 @@ jobs:
         -var "cloudflare_zone_id=$CLOUDFLARE_ZONE_ID" \
         -var "cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID" \
         -var "cloudflare_domain=$CLOUDFLARE_DOMAIN" \
-        -var "kubeconfig=$KUBECONFIG" \
         -auto-approve \
         tfplan
