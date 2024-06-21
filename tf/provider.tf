@@ -6,7 +6,7 @@ terraform {
   # }
   backend "kubernetes" {
     secret_suffix    = "state"
-    config_path      = var.kubeconfig
+    config_path      = "~/.kube/config"
   }
 
   required_providers {
