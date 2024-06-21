@@ -75,24 +75,6 @@ resource "cloudflare_record" "terraform_managed_resource_60590adccff06bef9cc8cd8
   zone_id = var.cloudflare_zone_id
 }
 
-resource "cloudflare_record" "terraform_managed_resource_5f3fba0f5e45e88a9c153b6de0f2099e" {
-  name    = "k8s2"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-  value   = "akatsuki.gg"
-  zone_id = var.cloudflare_zone_id
-}
-
-resource "cloudflare_record" "terraform_managed_resource_ae7787c943c44985f691ef77f11fdbb3" {
-  name    = "k8s"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-  value   = "akatsuki.gg"
-  zone_id = var.cloudflare_zone_id
-}
-
 resource "cloudflare_record" "terraform_managed_resource_49009678a2c31101a4b0484428c5ee9e" {
   name    = "old"
   proxied = true
@@ -129,24 +111,6 @@ resource "cloudflare_record" "terraform_managed_resource_f8963f0589aab4febc666e2
   zone_id = var.cloudflare_zone_id
 }
 
-resource "cloudflare_record" "terraform_managed_resource_3d6cfd3fe505689a876871896cb5178c" {
-  name    = "pypi2"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-  value   = "akatsuki.gg"
-  zone_id = var.cloudflare_zone_id
-}
-
-resource "cloudflare_record" "terraform_managed_resource_09dffb3d0ed5812c62c6886c823fb0b1" {
-  name    = "pypi"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-  value   = "akatsuki.gg"
-  zone_id = var.cloudflare_zone_id
-}
-
 resource "cloudflare_record" "terraform_managed_resource_ac35937a3b1dd16002c34ff979c1c69c" {
   name    = "relax"
   proxied = true
@@ -176,15 +140,6 @@ resource "cloudflare_record" "terraform_managed_resource_660b7bf2540aeb1d28590e8
 
 resource "cloudflare_record" "terraform_managed_resource_607a671bcc399aee897f192ffbf904e2" {
   name    = "s"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-  value   = "akatsuki.gg"
-  zone_id = var.cloudflare_zone_id
-}
-
-resource "cloudflare_record" "terraform_managed_resource_615173b6009fc0169a1d8471d781d8b1" {
-  name    = "vault2"
   proxied = true
   ttl     = 1
   type    = "CNAME"
