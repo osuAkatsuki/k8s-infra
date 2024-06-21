@@ -1,0 +1,10 @@
+do_token = ""
+pvt_key = "/home/josh/.ssh/id_rsa"
+
+cloudflare_api_token = ""
+cloudflare_zone_id = ""
+cloudflare_account_id = ""
+cloudflare_domain = "akatsuki.gg"
+
+aws_access_key = ""
+aws_secret_key = ""
