@@ -4,6 +4,10 @@ terraform {
   #   key    = "terraform.tfstate"
   #   region = "ca-central-1"
   # }
+  backend "kubernetes" {
+    secret_suffix    = "state"
+    config_path      = var.kubeconfig
+  }
 
   required_providers {
     # aws = {
