@@ -5,8 +5,8 @@ terraform {
   #   region = "ca-central-1"
   # }
   backend "kubernetes" {
-    secret_suffix    = "state"
-    config_path      = "~/.kube/config"
+    secret_suffix = "state"
+    config_path   = "~/.kube/config"
   }
 
   required_providers {
