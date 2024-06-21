@@ -34,7 +34,9 @@ jobs:
         terraform_wrapper: false
 
     - name: Write Kubeconfig to Disk
-      run: echo "$KUBECONFIG" > ~/.kube/config
+      run: |
+        mkdir ~/.kube
+        echo "$KUBECONFIG" > ~/.kube/config
 
     - name: Terraform Init
       working-directory: ./tf
