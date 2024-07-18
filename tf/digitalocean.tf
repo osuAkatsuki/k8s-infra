@@ -24,17 +24,6 @@ resource "digitalocean_tag" "k8s-production" {
   name = "k8s-production"
 }
 
-resource "digitalocean_droplet" "infrastructure01-droplet" {
-  region      = "tor1"
-  name        = "infrastructure01.akatsuki.gg"
-  image       = "ubuntu-23-10-x64"
-  size        = "s-2vcpu-2gb"
-  backups     = false
-  resize_disk = true
-  tags        = []
-  vpc_uuid    = digitalocean_vpc.akatsuki-production-vpc.id
-}
-
 resource "digitalocean_droplet" "k8s-master01-droplet" {
   region      = "tor1"
   name        = "k8s-master01.akatsuki.gg"
@@ -84,17 +73,6 @@ resource "digitalocean_droplet" "mysql-master01-droplet" {
   name        = "mysql-master01.akatsuki.gg"
   image       = "ubuntu-23-10-x64"
   size        = "s-4vcpu-8gb-intel"
-  backups     = false
-  resize_disk = true
-  tags        = []
-  vpc_uuid    = digitalocean_vpc.akatsuki-production-vpc.id
-}
-
-resource "digitalocean_droplet" "rabbitmq-worker01-droplet" {
-  region      = "tor1"
-  name        = "rabbitmq-worker01.akatsuki.gg"
-  image       = "ubuntu-23-10-x64"
-  size        = "s-1vcpu-2gb"
   backups     = false
   resize_disk = true
   tags        = []
