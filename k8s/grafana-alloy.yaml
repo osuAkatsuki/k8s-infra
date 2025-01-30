@@ -1,0 +1,198 @@
+alloy:
+  configMap:
+    content: |-
+      logging {
+        level  = "info"
+        format = "json"
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "https://logs-prod-018.grafana.net/loki/api/v1/push"
+          basic_auth {
+            username = "${GRAFANA_USER}"
+            password = "${GRAFANA_SECRET}"
+          }
+        }
+      }
+
+      prometheus.remote_write "metrics_service" {
+        endpoint {
+          url = "https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom/push"
+          basic_auth {
+            username = "${PROMETHEUS_USER}"
+            password = "${GRAFANA_SECRET}"
+          }
+        }
+      }
+
+      // Setup k8s logging
+
+      discovery.kubernetes "pod" {
+        role = "pod"
+      }
+
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pod.targets
+
+        // Label creation - "namespace" field from "__meta_kubernetes_namespace"
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          action = "replace"
+          target_label = "namespace"
+        }
+
+        // Label creation - "pod" field from "__meta_kubernetes_pod_name"
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          action = "replace"
+          target_label = "pod"
+        }
+
+        // Label creation - "container" field from "__meta_kubernetes_pod_container_name"
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          action = "replace"
+          target_label = "container"
+        }
+
+        // Label creation -  "app" field from "__meta_kubernetes_pod_label_app_kubernetes_io_name"
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          action = "replace"
+          target_label = "app"
+        }
+
+        // Label creation -  "job" field from "__meta_kubernetes_namespace" and "__meta_kubernetes_pod_container_name"
+        // Concatenate values __meta_kubernetes_namespace/__meta_kubernetes_pod_container_name
+        rule {
+          source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
+          action = "replace"
+          target_label = "job"
+          separator = "/"
+          replacement = "$1"
+        }
+
+        // Label creation - "container" field from "__meta_kubernetes_pod_uid" and "__meta_kubernetes_pod_container_name"
+        // Concatenate values __meta_kubernetes_pod_uid/__meta_kubernetes_pod_container_name.log
+        rule {
+          source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+          action = "replace"
+          target_label = "__path__"
+          separator = "/"
+          replacement = "/var/log/pods/*$1/*.log"
+        }
+
+        // Label creation -  "container_runtime" field from "__meta_kubernetes_pod_container_id"
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_id"]
+          action = "replace"
+          target_label = "container_runtime"
+          regex = "^(\\S+):\\/\\/.+$"
+          replacement = "$1"
+        }
+      }
+
+      // loki.source.kubernetes tails logs from Kubernetes containers using the Kubernetes API.
+      loki.source.kubernetes "pod_logs" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.process.pod_logs.receiver]
+      }
+
+      loki.process "pod_logs" {
+        stage.static_labels {
+            values = {
+              cluster = "kubernetes",
+            }
+        }
+
+        forward_to = [loki.write.default.receiver]
+      }
+
+      loki.source.kubernetes_events "cluster_events" {
+        job_name   = "integrations/kubernetes/eventhandler"
+        log_format = "logfmt"
+        forward_to = [
+          loki.process.cluster_events.receiver,
+        ]
+      }
+
+      // loki.process receives log entries from other loki components, applies one or more processing stages,
+      // and forwards the results to the list of receivers in the component's arguments.
+      loki.process "cluster_events" {
+        forward_to = [loki.write.default.receiver]
+
+        stage.static_labels {
+          values = {
+            cluster = "kubernetes",
+          }
+        }
+
+        stage.labels {
+          values = {
+            kubernetes_cluster_events = "job",
+          }
+        }
+      }
+
+      // Setup MySQL Metrics Integration
+
+      prometheus.exporter.mysql "integrations_mysqld_exporter" {
+        data_source_name = "${DB_USER}:${DB_PASSWORD}@(${DB_HOST}:${DB_PORT})/${DB_SCHEMA}"
+      }
+
+      discovery.relabel "integrations_mysqld_exporter" {
+        targets = prometheus.exporter.mysql.integrations_mysqld_exporter.targets
+
+        rule {
+          target_label = "job"
+          replacement  = "integrations/mysql"
+        }
+
+        rule {
+          target_label = "instance"
+          replacement  = constants.hostname
+        }
+      }
+
+      prometheus.scrape "integrations_mysqld_exporter" {
+        targets    = discovery.relabel.integrations_mysqld_exporter.output
+        forward_to = [prometheus.remote_write.metrics_service.receiver]
+        job_name   = "integrations/mysqld_exporter"
+      }
+
+      // Setup Redis Metrics Integration
+
+      prometheus.exporter.redis "integrations_redis_exporter" {
+        redis_addr = "${REDIS_HOST}:${REDIS_PORT}"
+      }
+
+      discovery.relabel "integrations_redis_exporter" {
+        targets = prometheus.exporter.redis.integrations_redis_exporter.targets
+
+        rule {
+          target_label = "instance"
+          replacement  = constants.hostname
+        }
+
+        rule {
+          target_label = "job"
+          replacement  = "integrations/redis_exporter"
+        }
+      }
+
+      prometheus.scrape "integrations_redis_exporter" {
+        targets    = discovery.relabel.integrations_redis_exporter.output
+        forward_to = [prometheus.relabel.integrations_redis_exporter.receiver]
+        job_name   = "integrations/redis_exporter"
+      }
+
+      prometheus.relabel "integrations_redis_exporter" {
+        forward_to = [prometheus.remote_write.metrics_service.receiver]
+
+        rule {
+          source_labels = ["__name__"]
+          regex         = "up|redis_blocked_clients|redis_cluster_slots_fail|redis_cluster_slots_pfail|redis_cluster_state|redis_commands_duration_seconds_total|redis_commands_total|redis_connected_clients|redis_connected_slaves|redis_db_keys|redis_db_keys_expiring|redis_evicted_keys_total|redis_keyspace_hits_total|redis_keyspace_misses_total|redis_master_last_io_seconds_ago|redis_memory_fragmentation_ratio|redis_memory_max_bytes|redis_memory_used_bytes|redis_memory_used_rss_bytes|redis_total_system_memory_bytes|redis_up"
+          action        = "keep"
+        }
+      }
