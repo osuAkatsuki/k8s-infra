@@ -30,6 +30,11 @@ alloy:
 
       discovery.kubernetes "pod" {
         role = "pod"
+
+        selectors {
+          role  = "pod"
+          field = "spec.nodeName=" + coalesce(env("HOSTNAME"), constants.hostname)
+        }
       }
 
       discovery.relabel "pod_logs" {
