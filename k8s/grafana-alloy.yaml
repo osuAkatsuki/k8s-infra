@@ -111,15 +111,7 @@ alloy:
             }
         }
 
-        forward_to = [loki.write.drop_old.receiver]
-      }
-
-      loki.process "drop_old" {
         forward_to = [loki.write.default.receiver]
-        stage.drop {
-          older_than          = "1h"
-          drop_counter_reason = "too old"
-        }
       }
 
       loki.source.kubernetes_events "cluster_events" {
