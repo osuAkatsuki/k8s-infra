@@ -19,7 +19,7 @@ env:
   REDIS_PORT: ${{ secrets.REDIS_PORT }}
 
 jobs:
-  production-deploy:
+  alloy-production-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,7 @@ jobs:
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo update
 
-      - name: Generate helm values for alloy and k8s-monitor
+      - name: Generate helm values for alloy
         run: |
           envsubst < k8s/grafana-alloy.yaml > alloy-values.yaml
           envsubst < k8s/grafana-k8s-monitor.yaml > k8s-monitoring-values.yaml
@@ -61,16 +61,6 @@ jobs:
           grafana-alloy \
           grafana/alloy
 
-      - name: Show manifest diff since previous k8s-monitor release
-        run: |
-          helm diff upgrade \
-          --version ^1 \
-          --allow-unreleased \
-          --color=true \
-          --values k8s-monitoring-values.yaml \
-          grafana-k8s-monitoring \
-          grafana/k8s-monitoring
-
       - name: Deploy Alloy to production cluster
         run: |
           helm upgrade \
@@ -82,13 +72,55 @@ jobs:
           grafana-alloy \
           grafana/alloy
 
+  monitoring-production-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out latest commit
+        uses: actions/checkout@v3
+
+      - name: Get kubeconfig from github secrets
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          sudo chown $(id -u):$(id -g) $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Install helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "latest"
+        id: install
+
+      - name: Install helm-diff
+        run: helm plugin install https://github.com/databus23/helm-diff
+
+      - name: Add Grafana Helm Charts Repository
+        run: |
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+
+      - name: Generate helm values for k8s-monitor
+        run: |
+          envsubst < k8s/grafana-k8s-monitor.yaml > k8s-monitoring-values.yaml
+
+      - name: Show manifest diff since previous k8s-monitor release
+        run: |
+          helm diff upgrade \
+          --version ^1 \
+          --allow-unreleased \
+          --color=true \
+          --values k8s-monitoring-values.yaml \
+          grafana-k8s-monitoring \
+          grafana/k8s-monitoring
+
       - name: Deploy k8s-monitor to production cluster
         run: |
           helm upgrade \
           --install \
           --version ^1 \
           --atomic \
-          --wait --timeout 20m \
+          --wait --timeout 10m \
           --values k8s-monitoring-values.yaml \
           grafana-k8s-monitoring \
           grafana/k8s-monitoring
