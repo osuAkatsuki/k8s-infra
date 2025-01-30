@@ -88,7 +88,7 @@ jobs:
           --install \
           --version ^1 \
           --atomic \
-          --timeout 10m \
+          --wait --timeout 20m \
           --values k8s-monitoring-values.yaml \
           grafana-k8s-monitoring \
           grafana/k8s-monitoring
