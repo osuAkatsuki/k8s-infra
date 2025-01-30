@@ -1,9 +1,9 @@
-name: 'Grafana'
+name: "Grafana Deployment"
 
 on:
   push:
     branches:
-    - master
+      - master
 
 env:
   TEMPO_USER: ${{ secrets.TEMPO_USER }}
@@ -28,16 +28,15 @@ jobs:
 
       - name: Get kubeconfig from github secrets
         run: |
-            mkdir -p $HOME/.kube
-            echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
-            sudo chown $(id -u):$(id -g) $HOME/.kube/config
-            chmod 600 $HOME/.kube/config
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          sudo chown $(id -u):$(id -g) $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
       - name: Install helm
         uses: azure/setup-helm@v3
         with:
           version: "latest"
-          token: ${{ secrets.GITHUB_TOKEN }}
         id: install
 
       - name: Install helm-diff
@@ -45,50 +44,50 @@ jobs:
 
       - name: Add Grafana Helm Charts Repository
         run: |
-            helm repo add grafana https://grafana.github.io/helm-charts
-            helm repo update
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
 
       - name: Generate helm values for alloy and k8s-monitor
         run: |
-            envsubst < k8s/grafana-alloy.yaml > alloy-values.yaml
-            envsubst < k8s/grafana-k8s-monitor.yaml > k8s-monitoring-values.yaml
-      
+          envsubst < k8s/grafana-alloy.yaml > alloy-values.yaml
+          envsubst < k8s/grafana-k8s-monitor.yaml > k8s-monitoring-values.yaml
+
       - name: Show manifest diff since previous alloy release
         run: |
-            helm diff upgrade \
-            --allow-unreleased \
-            --color=true \
-            --values alloy-values.yaml \
-            grafana-alloy \
-            grafana/alloy
-      
+          helm diff upgrade \
+          --allow-unreleased \
+          --color=true \
+          --values alloy-values.yaml \
+          grafana-alloy \
+          grafana/alloy
+
       - name: Show manifest diff since previous k8s-monitor release
         run: |
-            helm diff upgrade \
-            --allow-unreleased \
-            --color=true \
-            --values k8s-monitoring-values.yaml \
-            grafana-k8s-monitoring \
-            grafana/k8s-monitoring
-      
+          helm diff upgrade \
+          --allow-unreleased \
+          --color=true \
+          --values k8s-monitoring-values.yaml \
+          grafana-k8s-monitoring \
+          grafana/k8s-monitoring
+
       - name: Deploy Alloy to production cluster
         run: |
-            helm upgrade \
-            --install \
-            --atomic \
-            --wait --timeout 10m \
-            --cleanup-on-fail \
-            --values alloy-values.yaml \
-            grafana-alloy \
-            grafana/alloy
-      
+          helm upgrade \
+          --install \
+          --atomic \
+          --wait --timeout 10m \
+          --cleanup-on-fail \
+          --values alloy-values.yaml \
+          grafana-alloy \
+          grafana/alloy
+
       - name: Deploy k8s-monitor to production cluster
         run: |
-            helm upgrade \
-            --install \
-            --version ^1 \
-            --atomic \
-            --wait --timeout 300s \
-            --values k8s-monitoring-values.yaml \
-            grafana-k8s-monitoring \
-            grafana/k8s-monitoring
+          helm upgrade \
+          --install \
+          --version ^1 \
+          --atomic \
+          --wait --timeout 300s \
+          --values k8s-monitoring-values.yaml \
+          grafana-k8s-monitoring \
+          grafana/k8s-monitoring
