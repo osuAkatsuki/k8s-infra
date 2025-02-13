@@ -6,6 +6,7 @@ on:
       - master
 
 env:
+  PYRO_USER: ${{ secrets.PYRO_USER }}
   TEMPO_USER: ${{ secrets.TEMPO_USER }}
   PROMETHEUS_USER: ${{ secrets.PROMETHEUS_USER }}
   GRAFANA_USER: ${{ secrets.GRAFANA_USER }}
