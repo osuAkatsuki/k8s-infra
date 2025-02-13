@@ -50,8 +50,6 @@ clusterMetrics:
           url: https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom
   kepler:
     enabled: true
-annotationAutodiscovery:
-  enabled: true
 clusterEvents:
   enabled: true
 applicationObservability:
@@ -67,11 +65,6 @@ applicationObservability:
     zipkin:
       enabled: true
       port: 9411
-  processors:
-    grafanaCloudMetrics:
-      enabled: true
-autoInstrumentation:
-  enabled: true
 profiling:
   enabled: true
 integrations:
