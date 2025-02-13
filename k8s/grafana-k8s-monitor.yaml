@@ -1,65 +1,108 @@
 cluster:
   name: kubernetes
-externalServices:
-  prometheus:
-    host: https://prometheus-prod-32-prod-ca-east-0.grafana.net
-    basicAuth:
+destinations:
+  - name: akatsuki-prom
+    type: prometheus
+    url: https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom/push
+    auth:
+      type: basic
       username: "${PROMETHEUS_USER}"
       password: ${GRAFANA_SECRET}
-  loki:
-    host: https://logs-prod-018.grafana.net
-    basicAuth:
+  - name: akatsuki-logs
+    type: loki
+    url: https://logs-prod-018.grafana.net/loki/api/v1/push
+    auth:
+      type: basic
       username: "${GRAFANA_USER}"
       password: ${GRAFANA_SECRET}
-  tempo:
-    host: https://tempo-prod-13-prod-ca-east-0.grafana.net:443
-    basicAuth:
+  - name: akatsuki-traces
+    type: otlp
+    url: https://tempo-prod-13-prod-ca-east-0.grafana.net:443
+    protocol: grpc
+    auth:
+      type: basic
       username: "${TEMPO_USER}"
       password: ${GRAFANA_SECRET}
-metrics:
-  enabled: true
-  alloy:
-    metricsTuning:
-      useIntegrationAllowList: true
-  cost:
-    enabled: true
-  kepler:
-    enabled: true
-  node-exporter:
-    enabled: true
-logs:
-  enabled: true
-  pod_logs:
-    enabled: false
-  cluster_events:
-    enabled: true
-traces:
-  enabled: true
-receivers:
-  grpc:
-    enabled: true
-  http:
-    enabled: true
-  zipkin:
-    enabled: true
-  grafanaCloudMetrics:
-    enabled: false
-opencost:
+    metrics:
+      enabled: false
+    logs:
+      enabled: false
+    traces:
+      enabled: true
+  - name: akatsuki-profiles
+    type: pyroscope
+    url: https://profiles-prod-006.grafana.net:443
+    auth:
+      type: basic
+      username: "${PYRO_USER}"
+      password: ${GRAFANA_SECRET}
+clusterMetrics:
   enabled: true
   opencost:
-    exporter:
-      defaultClusterId: kubernetes
-    prometheus:
-      external:
-        url: https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom
-kube-state-metrics:
+    enabled: true
+    metricsSource: akatsuki-prom
+    opencost:
+      exporter:
+        defaultClusterId: kubernetes
+      prometheus:
+        existingSecretName: akatsuki-prom-grafana-k8s-monitoring
+        external:
+          url: https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom
+  kepler:
+    enabled: true
+annotationAutodiscovery:
   enabled: true
-prometheus-node-exporter:
+clusterEvents:
   enabled: true
-prometheus-operator-crds:
+applicationObservability:
   enabled: true
-kepler:
+  receivers:
+    otlp:
+      grpc:
+        enabled: true
+        port: 4317
+      http:
+        enabled: true
+        port: 4318
+    zipkin:
+      enabled: true
+      port: 9411
+  processors:
+    grafanaCloudMetrics:
+      enabled: true
+autoInstrumentation:
   enabled: true
-alloy: {}
-alloy-events: {}
-alloy-logs: {}
+profiling:
+  enabled: true
+integrations:
+  alloy:
+    instances:
+      - name: alloy
+        labelSelectors:
+          app.kubernetes.io/name:
+            - alloy-metrics
+            - alloy-singleton
+            - alloy-receiver
+            - alloy-profiles
+alloy-metrics:
+  enabled: true
+alloy-singleton:
+  enabled: true
+alloy-receiver:
+  enabled: true
+  alloy:
+    extraPorts:
+      - name: otlp-grpc
+        port: 4317
+        targetPort: 4317
+        protocol: TCP
+      - name: otlp-http
+        port: 4318
+        targetPort: 4318
+        protocol: TCP
+      - name: zipkin
+        port: 9411
+        targetPort: 9411
+        protocol: TCP
+alloy-profiles:
+  enabled: true
