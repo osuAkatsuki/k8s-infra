@@ -53,7 +53,6 @@ jobs:
       - name: Show manifest diff since previous k8s-monitor release
         run: |
           helm diff upgrade \
-          --version ^2 \
           --allow-unreleased \
           --color=true \
           --values k8s-monitoring-values.yaml \
