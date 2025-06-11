@@ -6,8 +6,6 @@ on:
       - master
 
 env:
-  PYRO_USER: ${{ secrets.PYRO_USER }}
-  TEMPO_USER: ${{ secrets.TEMPO_USER }}
   PROMETHEUS_USER: ${{ secrets.PROMETHEUS_USER }}
   GRAFANA_USER: ${{ secrets.GRAFANA_USER }}
   GRAFANA_SECRET: ${{ secrets.GRAFANA_SECRET }}
@@ -20,59 +18,6 @@ env:
   REDIS_PORT: ${{ secrets.REDIS_PORT }}
 
 jobs:
-  alloy-production-deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out latest commit
-        uses: actions/checkout@v3
-
-      - name: Get kubeconfig from github secrets
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
-          sudo chown $(id -u):$(id -g) $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
-
-      - name: Install helm
-        uses: azure/setup-helm@v3
-        with:
-          version: "latest"
-        id: install
-
-      - name: Install helm-diff
-        run: helm plugin install https://github.com/databus23/helm-diff
-
-      - name: Add Grafana Helm Charts Repository
-        run: |
-          helm repo add grafana https://grafana.github.io/helm-charts
-          helm repo update
-
-      - name: Generate helm values for alloy
-        run: |
-          envsubst < k8s/grafana-alloy.yaml > alloy-values.yaml
-          envsubst < k8s/grafana-k8s-monitor.yaml > k8s-monitoring-values.yaml
-
-      - name: Show manifest diff since previous alloy release
-        run: |
-          helm diff upgrade \
-          --allow-unreleased \
-          --color=true \
-          --values alloy-values.yaml \
-          grafana-alloy \
-          grafana/alloy
-
-      - name: Deploy Alloy to production cluster
-        run: |
-          helm upgrade \
-          --install \
-          --atomic \
-          --wait --timeout 10m \
-          --cleanup-on-fail \
-          --values alloy-values.yaml \
-          grafana-alloy \
-          grafana/alloy
-
   monitoring-production-deploy:
     runs-on: ubuntu-latest
 
@@ -119,7 +64,6 @@ jobs:
         run: |
           helm upgrade \
           --install \
-          --version ^2 \
           --atomic \
           --wait --timeout 10m \
           --values k8s-monitoring-values.yaml \
