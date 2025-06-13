@@ -19,6 +19,11 @@ clusterMetrics:
   enabled: true
 podLogs:
   enabled: true
+  extraLogProcessingStages: |-
+    stage.drop {
+      older_than          = "1h"
+      drop_counter_reason = "too old"
+    }
 integrations:
   alloy:
     instances:
