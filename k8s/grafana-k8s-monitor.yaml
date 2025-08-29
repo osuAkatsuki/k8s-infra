@@ -1,65 +1,38 @@
 cluster:
   name: kubernetes
-externalServices:
-  prometheus:
-    host: https://prometheus-prod-32-prod-ca-east-0.grafana.net
-    basicAuth:
+destinations:
+  - name: grafana-cloud-metrics
+    type: prometheus
+    url: https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom/push
+    auth:
+      type: basic
       username: "${PROMETHEUS_USER}"
       password: ${GRAFANA_SECRET}
-  loki:
-    host: https://logs-prod-018.grafana.net
-    basicAuth:
+  - name: grafana-cloud-logs
+    type: loki
+    url: https://logs-prod-018.grafana.net/loki/api/v1/push
+    auth:
+      type: basic
       username: "${GRAFANA_USER}"
       password: ${GRAFANA_SECRET}
-  tempo:
-    host: https://tempo-prod-13-prod-ca-east-0.grafana.net:443
-    basicAuth:
-      username: "${TEMPO_USER}"
-      password: ${GRAFANA_SECRET}
-metrics:
+clusterMetrics:
   enabled: true
+podLogs:
+  enabled: true
+  extraLogProcessingStages: |-
+    stage.drop {
+      older_than          = "1h"
+      drop_counter_reason = "too old"
+    }
+integrations:
   alloy:
-    metricsTuning:
-      useIntegrationAllowList: true
-  cost:
-    enabled: true
-  kepler:
-    enabled: true
-  node-exporter:
-    enabled: true
-logs:
+    instances:
+      - name: alloy
+        labelSelectors:
+          app.kubernetes.io/name:
+            - alloy-metrics
+            - alloy-logs
+alloy-metrics:
   enabled: true
-  pod_logs:
-    enabled: false
-  cluster_events:
-    enabled: true
-traces:
+alloy-logs:
   enabled: true
-receivers:
-  grpc:
-    enabled: true
-  http:
-    enabled: true
-  zipkin:
-    enabled: true
-  grafanaCloudMetrics:
-    enabled: false
-opencost:
-  enabled: true
-  opencost:
-    exporter:
-      defaultClusterId: kubernetes
-    prometheus:
-      external:
-        url: https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom
-kube-state-metrics:
-  enabled: true
-prometheus-node-exporter:
-  enabled: true
-prometheus-operator-crds:
-  enabled: true
-kepler:
-  enabled: true
-alloy: {}
-alloy-events: {}
-alloy-logs: {}
