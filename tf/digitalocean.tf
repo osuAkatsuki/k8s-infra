@@ -57,17 +57,6 @@ resource "digitalocean_droplet" "k8s-worker02-droplet" {
   vpc_uuid    = digitalocean_vpc.akatsuki-production-vpc.id
 }
 
-resource "digitalocean_droplet" "k8s-worker04-droplet" {
-  region      = "tor1"
-  name        = "k8s-worker04.akatsuki.gg"
-  image       = "ubuntu-23-10-x64"
-  size        = "s-4vcpu-8gb-intel"
-  backups     = false
-  resize_disk = true
-  tags        = [digitalocean_tag.k8s-production.name]
-  vpc_uuid    = digitalocean_vpc.akatsuki-production-vpc.id
-}
-
 resource "digitalocean_droplet" "mysql-master01-droplet" {
   region      = "tor1"
   name        = "mysql-master01.akatsuki.gg"
