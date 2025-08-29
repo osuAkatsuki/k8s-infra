@@ -36,6 +36,7 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: "latest"
+          token: ${{ secrets.GITHUB_TOKEN }}
         id: install
 
       - name: Install helm-diff
