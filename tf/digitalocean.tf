@@ -195,8 +195,8 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
 
   # NodePort Services - from VPC and mysql-master01 (nginx reverse proxy)
   inbound_rule {
-    protocol         = "tcp"
-    port_range       = "30000-32767"
+    protocol   = "tcp"
+    port_range = "30000-32767"
     source_addresses = [
       digitalocean_vpc.akatsuki-production-vpc.ip_range,
       "${digitalocean_droplet.mysql-master01-droplet.ipv4_address}/32"
