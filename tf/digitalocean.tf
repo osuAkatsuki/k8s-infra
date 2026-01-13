@@ -213,11 +213,14 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Kubelet API - k8s nodes only (master calls this via public IP)
+  # Kubelet API - VPC + master public IP (master still uses public IP)
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "10250"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "10250"
+    source_addresses = [
+      digitalocean_vpc.akatsuki-production-vpc.ip_range,
+      "${digitalocean_droplet.k8s-master01-droplet.ipv4_address}/32",
+    ]
   }
 
   # NodePort Services - VPC only (nginx on mysql-master01 uses VPC IPs)
@@ -227,11 +230,14 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Flannel VXLAN - k8s nodes only (pod network overlay, uses public IPs)
+  # Flannel VXLAN - VPC + master public IP (workers use VPC, master still public)
   inbound_rule {
-    protocol    = "udp"
-    port_range  = "8472"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "udp"
+    port_range       = "8472"
+    source_addresses = [
+      digitalocean_vpc.akatsuki-production-vpc.ip_range,
+      "${digitalocean_droplet.k8s-master01-droplet.ipv4_address}/32",
+    ]
   }
 
   # Allow all outbound traffic
