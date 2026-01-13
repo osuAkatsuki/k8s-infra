@@ -163,6 +163,13 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
+  # Flannel VXLAN - required for pod network overlay
+  inbound_rule {
+    protocol         = "udp"
+    port_range       = "8472"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
   # Allow all outbound traffic
   outbound_rule {
     protocol              = "icmp"
@@ -208,6 +215,13 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
   inbound_rule {
     protocol         = "tcp"
     port_range       = "30000-32767"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # Flannel VXLAN - required for pod network overlay
+  inbound_rule {
+    protocol         = "udp"
+    port_range       = "8472"
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
