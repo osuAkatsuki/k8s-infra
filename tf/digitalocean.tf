@@ -265,18 +265,18 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
-  # HTTP - open (Cloudflare proxies, but also direct access allowed)
+  # HTTP - Cloudflare only (required for Flexible SSL mode)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "80"
-    source_addresses = ["0.0.0.0/0", "::/0"]
+    source_addresses = concat(var.cloudflare_ipv4_ranges, var.cloudflare_ipv6_ranges)
   }
 
-  # HTTPS - Cloudflare + open (TODO: restrict to Cloudflare only)
+  # HTTPS - Cloudflare only
   inbound_rule {
     protocol         = "tcp"
     port_range       = "443"
-    source_addresses = concat(["0.0.0.0/0", "::/0"], var.cloudflare_ipv4_ranges, var.cloudflare_ipv6_ranges)
+    source_addresses = concat(var.cloudflare_ipv4_ranges, var.cloudflare_ipv6_ranges)
   }
 
   # MySQL - k8s-production tagged droplets only
