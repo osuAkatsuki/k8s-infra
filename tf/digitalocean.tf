@@ -186,6 +186,62 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
   }
 }
 
+# =============================================================================
+# K8S WORKERS FIREWALL
+# =============================================================================
+
+resource "digitalocean_firewall" "k8s-workers-firewall" {
+  name = "k8s-workers-firewall"
+
+  droplet_ids = [
+    digitalocean_droplet.k8s-worker01-droplet.id,
+    digitalocean_droplet.k8s-worker02-droplet.id,
+  ]
+
+  # SSH - VPC only (accessed via k8s-master01 ProxyJump)
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # Kubelet API - VPC only
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "10250"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # NodePort Services - VPC only (nginx on mysql-master01 uses VPC IPs)
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "30000-32767"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # Allow all outbound traffic
+  outbound_rule {
+    protocol              = "icmp"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+}
+
+# =============================================================================
+# EXISTING FIREWALLS - Imported from DigitalOcean
+# =============================================================================
+
 resource "digitalocean_firewall" "mysql-master01-firewall" {
   name = "mysql-master01.akatsuki.gg-access"
 
