@@ -125,11 +125,11 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
-  # HTTPS - Cloudflare only
+  # HTTPS - Cloudflare + open (TODO: restrict to Cloudflare only)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "443"
-    source_addresses = concat(var.cloudflare_ipv4_ranges, var.cloudflare_ipv6_ranges)
+    source_addresses = concat(["0.0.0.0/0", "::/0"], var.cloudflare_ipv4_ranges, var.cloudflare_ipv6_ranges)
   }
 
   # MySQL - k8s-production tagged droplets only
@@ -168,13 +168,13 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
 
   outbound_rule {
     protocol              = "tcp"
-    port_range            = "1-65535"
+    port_range            = "all"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 
   outbound_rule {
     protocol              = "udp"
-    port_range            = "1-65535"
+    port_range            = "all"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 }
@@ -206,13 +206,13 @@ resource "digitalocean_firewall" "infrastructure01-firewall" {
 
   outbound_rule {
     protocol              = "tcp"
-    port_range            = "1-65535"
+    port_range            = "all"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 
   outbound_rule {
     protocol              = "udp"
-    port_range            = "1-65535"
+    port_range            = "all"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 }
