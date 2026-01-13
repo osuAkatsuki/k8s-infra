@@ -199,7 +199,7 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
 
 resource "digitalocean_firewall" "k8s-workers-firewall" {
   count = var.enable_k8s_firewalls ? 1 : 0
-  name = "k8s-workers-firewall"
+  name  = "k8s-workers-firewall"
 
   droplet_ids = [
     digitalocean_droplet.k8s-worker01-droplet.id,
