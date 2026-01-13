@@ -114,10 +114,6 @@ variable "tailscale_ipv4_range" {
   default     = "100.64.0.0/10"
 }
 
-# =============================================================================
-# K8S MASTER FIREWALL
-# =============================================================================
-
 resource "digitalocean_firewall" "k8s-master-firewall" {
   name = "k8s-master-firewall"
 
@@ -186,10 +182,6 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
   }
 }
 
-# =============================================================================
-# K8S WORKERS FIREWALL
-# =============================================================================
-
 resource "digitalocean_firewall" "k8s-workers-firewall" {
   name = "k8s-workers-firewall"
 
@@ -237,10 +229,6 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 }
-
-# =============================================================================
-# EXISTING FIREWALLS - Imported from DigitalOcean
-# =============================================================================
 
 resource "digitalocean_firewall" "mysql-master01-firewall" {
   name = "mysql-master01.akatsuki.gg-access"
