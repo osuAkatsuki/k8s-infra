@@ -40,7 +40,7 @@ jobs:
         id: install
 
       - name: Install helm-diff
-        run: helm plugin list | grep -q diff || helm plugin install https://github.com/databus23/helm-diff
+        run: helm plugin install https://github.com/databus23/helm-diff
 
       - name: Add Grafana Helm Charts Repository
         run: |
