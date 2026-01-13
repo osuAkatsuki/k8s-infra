@@ -106,12 +106,6 @@ variable "cloudflare_ipv6_ranges" {
   ]
 }
 
-# =============================================================================
-# EXISTING FIREWALL - Imported from DigitalOcean
-# This firewall was created manually and is now managed by Terraform.
-# Import command: terraform import digitalocean_firewall.mysql-master01-firewall <firewall-id>
-# =============================================================================
-
 resource "digitalocean_firewall" "mysql-master01-firewall" {
   name = "mysql-master01.akatsuki.gg-access"
 
@@ -184,13 +178,6 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 }
-
-# =============================================================================
-# EXISTING FIREWALL - Imported from DigitalOcean
-# This firewall was created manually and is now managed by Terraform.
-# Import command: terraform import digitalocean_firewall.infrastructure01-firewall <firewall-id>
-# NOTE: Currently has 0 droplets attached. The infrastructure01 droplet is not yet in terraform.
-# =============================================================================
 
 resource "digitalocean_firewall" "infrastructure01-firewall" {
   name = "infrastructure01.akatsuki.gg-access"
