@@ -56,6 +56,7 @@ jobs:
           helm diff upgrade \
           --allow-unreleased \
           --color=true \
+          --namespace "grafana" \
           --values k8s-monitoring-values.yaml \
           grafana-k8s-monitoring \
           grafana/k8s-monitoring
