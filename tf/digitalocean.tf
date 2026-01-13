@@ -143,39 +143,39 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
-  # etcd - VPC only (internal cluster communication)
+  # etcd - k8s nodes only (K8s uses public IPs internally, not VPC)
   inbound_rule {
-    protocol         = "tcp"
-    port_range       = "2379-2380"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    protocol    = "tcp"
+    port_range  = "2379-2380"
+    source_tags = [digitalocean_tag.k8s-production.name]
   }
 
-  # Kubelet API - VPC only
+  # Kubelet API - k8s nodes only
   inbound_rule {
-    protocol         = "tcp"
-    port_range       = "10250"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    protocol    = "tcp"
+    port_range  = "10250"
+    source_tags = [digitalocean_tag.k8s-production.name]
   }
 
-  # kube-scheduler - VPC only
+  # kube-scheduler - k8s nodes only
   inbound_rule {
-    protocol         = "tcp"
-    port_range       = "10259"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    protocol    = "tcp"
+    port_range  = "10259"
+    source_tags = [digitalocean_tag.k8s-production.name]
   }
 
-  # kube-controller-manager - VPC only
+  # kube-controller-manager - k8s nodes only
   inbound_rule {
-    protocol         = "tcp"
-    port_range       = "10257"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    protocol    = "tcp"
+    port_range  = "10257"
+    source_tags = [digitalocean_tag.k8s-production.name]
   }
 
-  # Flannel VXLAN - required for pod network overlay
+  # Flannel VXLAN - k8s nodes only (pod network overlay)
   inbound_rule {
-    protocol         = "udp"
-    port_range       = "8472"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    protocol    = "udp"
+    port_range  = "8472"
+    source_tags = [digitalocean_tag.k8s-production.name]
   }
 
   # Allow all outbound traffic
@@ -199,7 +199,7 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
 
 resource "digitalocean_firewall" "k8s-workers-firewall" {
   count = var.enable_k8s_firewalls ? 1 : 0
-  name  = "k8s-workers-firewall"
+  name = "k8s-workers-firewall"
 
   droplet_ids = [
     digitalocean_droplet.k8s-worker01-droplet.id,
@@ -213,11 +213,11 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Kubelet API - VPC only
+  # Kubelet API - k8s nodes only (master calls this via public IP)
   inbound_rule {
-    protocol         = "tcp"
-    port_range       = "10250"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    protocol    = "tcp"
+    port_range  = "10250"
+    source_tags = [digitalocean_tag.k8s-production.name]
   }
 
   # NodePort Services - VPC only (nginx on mysql-master01 uses VPC IPs)
@@ -227,11 +227,11 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Flannel VXLAN - required for pod network overlay
+  # Flannel VXLAN - k8s nodes only (pod network overlay, uses public IPs)
   inbound_rule {
-    protocol         = "udp"
-    port_range       = "8472"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    protocol    = "udp"
+    port_range  = "8472"
+    source_tags = [digitalocean_tag.k8s-production.name]
   }
 
   # Allow all outbound traffic
