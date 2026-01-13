@@ -20,6 +20,7 @@ k8s-infra/
 │   └── grafana.yml        # Grafana k8s-monitoring deployment
 ├── k8s/                   # Kubernetes manifests
 │   ├── flannel/           # CNI configuration
+│   ├── github-runner/     # Self-hosted GitHub Actions runner (ARC)
 │   ├── istio/             # Service mesh telemetry
 │   ├── rbac/              # RBAC rules
 │   ├── datadog-agent.yaml # Datadog monitoring
@@ -76,6 +77,7 @@ ssh k8s-worker02
 
 - **Grafana workflow**: Deploys k8s-monitoring stack on push to master
 - **Terraform CI**: Validates and applies infrastructure changes
+- **Self-hosted runner**: Runs in VPC for secure K8s API access (see `k8s/github-runner/`)
 
 ## Related Repositories
 

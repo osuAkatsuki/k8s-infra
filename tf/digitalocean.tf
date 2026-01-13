@@ -134,13 +134,12 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
     source_addresses = [var.tailscale_ipv4_range]
   }
 
-  # Kubernetes API - open for now (GitHub Actions has 4000+ dynamic IPs)
-  # TODO: Consider self-hosted runners in VPC to restrict this
-  # Security: K8s API requires valid client certs, so exposure is low risk
+  # Kubernetes API - VPC + Tailscale only
+  # Self-hosted runner in VPC handles CI/CD, Tailscale for admin access
   inbound_rule {
     protocol         = "tcp"
     port_range       = "6443"
-    source_addresses = ["0.0.0.0/0", "::/0"]
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range, var.tailscale_ipv4_range]
   }
 
   # etcd - VPC only (cluster-internal)
