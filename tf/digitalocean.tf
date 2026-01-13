@@ -184,3 +184,48 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 }
+
+# =============================================================================
+# EXISTING FIREWALL - Imported from DigitalOcean
+# This firewall was created manually and is now managed by Terraform.
+# Import command: terraform import digitalocean_firewall.infrastructure01-firewall <firewall-id>
+# NOTE: Currently has 0 droplets attached. The infrastructure01 droplet is not yet in terraform.
+# =============================================================================
+
+resource "digitalocean_firewall" "infrastructure01-firewall" {
+  name = "infrastructure01.akatsuki.gg-access"
+
+  droplet_ids = []
+
+  # SSH - open (TODO: restrict to Tailscale/VPC in future)
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  # Vault API
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "8200"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  # Allow all outbound traffic
+  outbound_rule {
+    protocol              = "icmp"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "1-65535"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "1-65535"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+}
