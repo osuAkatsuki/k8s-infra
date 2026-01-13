@@ -118,7 +118,7 @@ variable "tailscale_ipv4_range" {
 variable "enable_k8s_firewalls" {
   description = "Enable k8s master and worker firewalls"
   type        = bool
-  default     = false
+  default     = true
 }
 
 resource "digitalocean_firewall" "k8s-master-firewall" {
