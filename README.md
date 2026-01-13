@@ -4,13 +4,13 @@ Infrastructure-as-code for the Akatsuki Kubernetes cluster on DigitalOcean.
 
 ## Cluster Overview
 
-| Node | Role | Public IP | VPC IP | Notes |
-|------|------|-----------|--------|-------|
-| k8s-master01 | Control plane | 159.203.62.14 | 10.118.0.2 | Runs control plane components |
-| k8s-worker01 | Worker | 138.197.146.243 | 10.118.0.3 | Workload node |
-| k8s-worker02 | Worker | 68.183.194.110 | 10.118.0.7 | Workload node |
+| Node         | Role          | Public IP       | VPC IP     | Notes                       |
+|--------------|---------------|-----------------|------------|-----------------------------|
+| k8s-master01 | Control plane | 159.203.62.14   | 10.118.0.2 | Runs control plane components |
+| k8s-worker01 | Worker        | 138.197.146.243 | 10.118.0.3 | Workload node               |
+| k8s-worker02 | Worker        | 68.183.194.110  | 10.118.0.7 | Workload node               |
 
-**VPC**: 10.118.0.0/20 (DigitalOcean NYC1)
+**VPC**: 10.118.0.0/20 (DigitalOcean TOR1)
 
 ## Repository Structure
 

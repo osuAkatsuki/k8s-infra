@@ -15,8 +15,8 @@ Flannel uses `--iface=eth1` to bind to the VPC interface, and the
 `flannel.alpha.coreos.com/public-ip` annotation tells other nodes which IP to use
 for VXLAN tunnels to this node.
 
-| Node | VXLAN IP | Interface | Status |
-|------|----------|-----------|--------|
+| Node         | VXLAN IP   | Interface  | Status     |
+|--------------|------------|------------|------------|
 | k8s-master01 | 10.118.0.2 | eth1 (VPC) | ✓ Migrated |
 | k8s-worker01 | 10.118.0.3 | eth1 (VPC) | ✓ Migrated |
 | k8s-worker02 | 10.118.0.7 | eth1 (VPC) | ✓ Migrated |
