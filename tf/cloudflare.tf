@@ -228,9 +228,6 @@ resource "cloudflare_record" "terraform_managed_resource_cc99f7278220097b3f5762e
 # TLS Configuration
 # Set zone-wide minimum TLS to 1.2 for modern security
 # Game client subdomains (c, c4, ce, osu) override to TLS 1.0 for osu! client compatibility
-
-# Zone-wide minimum TLS version (1.2 for all traffic by default)
-# Using cloudflare_zone_settings_override for provider v4 compatibility
 resource "cloudflare_zone_settings_override" "tls_settings" {
   zone_id = var.cloudflare_zone_id
 
