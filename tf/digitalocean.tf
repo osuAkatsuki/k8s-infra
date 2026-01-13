@@ -193,11 +193,14 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # NodePort Services - only from VPC (accessed via ingress)
+  # NodePort Services - from VPC and mysql-master01 (nginx reverse proxy)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "30000-32767"
-    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    source_addresses = [
+      digitalocean_vpc.akatsuki-production-vpc.ip_range,
+      "${digitalocean_droplet.mysql-master01-droplet.ipv4_address}/32"
+    ]
   }
 
   # Note: node_exporter (9100) is NOT exposed externally
