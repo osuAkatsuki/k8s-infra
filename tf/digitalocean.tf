@@ -143,39 +143,39 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
-  # etcd - k8s nodes only (K8s uses public IPs internally, not VPC)
+  # etcd - VPC only (cluster-internal)
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "2379-2380"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "2379-2380"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Kubelet API - k8s nodes only
+  # Kubelet API - VPC only
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "10250"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "10250"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # kube-scheduler - k8s nodes only
+  # kube-scheduler - VPC only
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "10259"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "10259"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # kube-controller-manager - k8s nodes only
+  # kube-controller-manager - VPC only
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "10257"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "10257"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Flannel VXLAN - k8s nodes only (pod network overlay)
+  # Flannel VXLAN - VPC only (pod network overlay uses eth1)
   inbound_rule {
-    protocol    = "udp"
-    port_range  = "8472"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "udp"
+    port_range       = "8472"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # Allow all outbound traffic
@@ -213,11 +213,11 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Kubelet API - k8s nodes only (master calls this via public IP)
+  # Kubelet API - VPC only (master calls via workers' VPC InternalIP)
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "10250"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "10250"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # NodePort Services - VPC only (nginx on mysql-master01 uses VPC IPs)
@@ -227,11 +227,11 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Flannel VXLAN - k8s nodes only (pod network overlay, uses public IPs)
+  # Flannel VXLAN - VPC only (pod network overlay uses eth1)
   inbound_rule {
-    protocol    = "udp"
-    port_range  = "8472"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "udp"
+    port_range       = "8472"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # Allow all outbound traffic
@@ -258,11 +258,11 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
 
   droplet_ids = [digitalocean_droplet.mysql-master01-droplet.id]
 
-  # SSH - open (TODO: restrict to Tailscale/VPC in future)
+  # SSH - VPC only (via k8s-master01 ProxyJump)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = ["0.0.0.0/0", "::/0"]
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # HTTP - Cloudflare only (required for Flexible SSL mode)
@@ -279,32 +279,32 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
     source_addresses = concat(var.cloudflare_ipv4_ranges, var.cloudflare_ipv6_ranges)
   }
 
-  # MySQL - k8s-production tagged droplets only
+  # MySQL - VPC only (k8s pods connect via SNATed worker VPC IPs)
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "3306"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "3306"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # PostgreSQL - k8s-production tagged droplets only
+  # PostgreSQL - VPC only
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "5432"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "5432"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # RabbitMQ - k8s-production tagged droplets only
+  # RabbitMQ - VPC only
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "5672"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "5672"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # Redis - k8s-production tagged droplets only
+  # Redis - VPC only
   inbound_rule {
-    protocol    = "tcp"
-    port_range  = "6379"
-    source_tags = [digitalocean_tag.k8s-production.name]
+    protocol         = "tcp"
+    port_range       = "6379"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # Allow all outbound traffic
