@@ -1,0 +1,4 @@
+apiVersion: v2
+name: github-runner
+description: Lightweight self-hosted GitHub Actions runner
+version: 1.0.0

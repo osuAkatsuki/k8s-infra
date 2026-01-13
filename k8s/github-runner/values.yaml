@@ -1,0 +1,17 @@
+# GitHub runner configuration
+org: osuAkatsuki
+labels: "self-hosted,vpc"
+
+# Resource limits (lightweight)
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+# Image
+image:
+  repository: myoung34/github-runner
+  tag: latest
