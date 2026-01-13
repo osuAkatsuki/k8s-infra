@@ -3,14 +3,13 @@
 # Version: v0.23.0
 #
 # Current state (2026-01-13):
-# - Workers use VPC IPs for kubelet InternalIP (--node-ip)
-# - Flannel VXLAN still uses public IPs (flannel.alpha.coreos.com/public-ip annotation)
-# - To migrate flannel to VPC IPs, update node annotations and restart flannel pods
+# - All nodes use VPC IPs for VXLAN traffic (via --iface=eth1)
+# - Node annotations set to VPC IPs (flannel.alpha.coreos.com/public-ip)
 #
-# Node IP configuration:
-#   k8s-master01: 159.203.62.14 (public) - no change planned
-#   k8s-worker01: 138.197.146.243 (public) -> 10.118.0.3 (VPC) [pending]
-#   k8s-worker02: 68.183.194.110 (public) -> 10.118.0.7 (VPC) [pending]
+# Node VXLAN IPs (all on VPC):
+#   k8s-master01: 10.118.0.2
+#   k8s-worker01: 10.118.0.3
+#   k8s-worker02: 10.118.0.7
 ---
 apiVersion: v1
 kind: Namespace
@@ -161,6 +160,7 @@ spec:
         args:
         - --ip-masq
         - --kube-subnet-mgr
+        - --iface=eth1  # Use VPC interface for VXLAN traffic
         env:
         - name: POD_NAME
           valueFrom:
