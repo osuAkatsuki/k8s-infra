@@ -193,18 +193,12 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
-  # NodePort Services - from VPC and mysql-master01 (nginx reverse proxy)
+  # NodePort Services - VPC only (nginx uses VPC IPs)
   inbound_rule {
-    protocol   = "tcp"
-    port_range = "30000-32767"
-    source_addresses = [
-      digitalocean_vpc.akatsuki-production-vpc.ip_range,
-      "${digitalocean_droplet.mysql-master01-droplet.ipv4_address}/32"
-    ]
+    protocol         = "tcp"
+    port_range       = "30000-32767"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
-
-  # Note: node_exporter (9100) is NOT exposed externally
-  # Prometheus should scrape via VPC
 
   # Allow all outbound traffic
   outbound_rule {
