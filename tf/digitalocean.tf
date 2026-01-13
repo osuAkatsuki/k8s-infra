@@ -71,10 +71,12 @@ resource "digitalocean_droplet" "mysql-master01-droplet" {
 # Firewall rules for Kubernetes cluster security
 # Restricts access to K8s control plane and internal services
 
-variable "admin_ip_addresses" {
-  description = "List of admin IP addresses allowed SSH access"
-  type        = list(string)
-  default     = []  # Set in terraform.tfvars
+# Tailscale CGNAT range for admin SSH access
+# k8s-master01 acts as bastion; other servers accessed via VPC ProxyJump
+variable "tailscale_ipv4_range" {
+  description = "Tailscale CGNAT IPv4 range"
+  type        = string
+  default     = "100.64.0.0/10"
 }
 
 # Cloudflare IP ranges for allowing HTTP/HTTPS traffic
@@ -107,11 +109,11 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
 
   droplet_ids = [digitalocean_droplet.k8s-master01-droplet.id]
 
-  # SSH - only from admin IPs
+  # SSH - only from Tailscale (bastion access point)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = var.admin_ip_addresses
+    source_addresses = [var.tailscale_ipv4_range]
   }
 
   # Kubernetes API - only from VPC (internal cluster communication)
@@ -177,11 +179,11 @@ resource "digitalocean_firewall" "k8s-workers-firewall" {
     digitalocean_droplet.k8s-worker02-droplet.id,
   ]
 
-  # SSH - only from admin IPs
+  # SSH - only from VPC (accessed via k8s-master01 ProxyJump)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = var.admin_ip_addresses
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # Kubelet API - only from VPC
@@ -226,11 +228,11 @@ resource "digitalocean_firewall" "mysql-master-firewall" {
 
   droplet_ids = [digitalocean_droplet.mysql-master01-droplet.id]
 
-  # SSH - only from admin IPs
+  # SSH - only from VPC (accessed via k8s-master01 ProxyJump)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = var.admin_ip_addresses
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # HTTP - only from Cloudflare

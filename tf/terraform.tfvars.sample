@@ -9,6 +9,6 @@ cloudflare_domain = "akatsuki.gg"
 aws_access_key = ""
 aws_secret_key = ""
 
-# Admin IP addresses for SSH access to servers
-# Add your IP address(es) here
-admin_ip_addresses = ["YOUR_IP/32"]
+# SSH access is via Tailscale to k8s-master01 (bastion)
+# Other servers accessed via VPC ProxyJump
+# tailscale_ipv4_range defaults to 100.64.0.0/10 (Tailscale CGNAT)
