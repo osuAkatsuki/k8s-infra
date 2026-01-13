@@ -106,6 +106,130 @@ variable "cloudflare_ipv6_ranges" {
   ]
 }
 
+# Tailscale CGNAT range for admin access
+# https://tailscale.com/kb/1015/100.x-addresses
+variable "tailscale_ipv4_range" {
+  description = "Tailscale CGNAT IPv4 range"
+  type        = string
+  default     = "100.64.0.0/10"
+}
+
+resource "digitalocean_firewall" "k8s-master-firewall" {
+  name = "k8s-master-firewall"
+
+  droplet_ids = [digitalocean_droplet.k8s-master01-droplet.id]
+
+  # SSH - Tailscale only (bastion access point)
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = [var.tailscale_ipv4_range]
+  }
+
+  # Kubernetes API - open for now (GitHub Actions has 4000+ dynamic IPs)
+  # TODO: Consider self-hosted runners in VPC to restrict this
+  # Security: K8s API requires valid client certs, so exposure is low risk
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "6443"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  # etcd - VPC only (internal cluster communication)
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "2379-2380"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # Kubelet API - VPC only
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "10250"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # kube-scheduler - VPC only
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "10259"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # kube-controller-manager - VPC only
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "10257"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # Allow all outbound traffic
+  outbound_rule {
+    protocol              = "icmp"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+}
+
+resource "digitalocean_firewall" "k8s-workers-firewall" {
+  name = "k8s-workers-firewall"
+
+  droplet_ids = [
+    digitalocean_droplet.k8s-worker01-droplet.id,
+    digitalocean_droplet.k8s-worker02-droplet.id,
+  ]
+
+  # SSH - VPC only (accessed via k8s-master01 ProxyJump)
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # Kubelet API - VPC only
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "10250"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # NodePort Services - VPC only (nginx on mysql-master01 uses VPC IPs)
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "30000-32767"
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
+  }
+
+  # Allow all outbound traffic
+  outbound_rule {
+    protocol              = "icmp"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+}
+
 resource "digitalocean_firewall" "mysql-master01-firewall" {
   name = "mysql-master01.akatsuki.gg-access"
 
