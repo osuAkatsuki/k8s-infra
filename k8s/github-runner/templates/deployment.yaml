@@ -26,6 +26,8 @@ spec:
               value: {{ .Values.labels | quote }}
             - name: RUNNER_WORKDIR
               value: "/tmp/runner"
+            - name: EPHEMERAL
+              value: "true"
             - name: ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:

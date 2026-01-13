@@ -73,11 +73,41 @@ ssh k8s-worker01
 ssh k8s-worker02
 ```
 
+## Cluster Access
+
+The K8s API (port 6443) is restricted to VPC and Tailscale networks only.
+
+| Network   | IP             | Use case                    |
+|-----------|----------------|-----------------------------|
+| Public    | 159.203.62.14  | Blocked by firewall         |
+| VPC       | 10.118.0.2     | CI/CD (GitHub runner)       |
+| Tailscale | 100.78.124.92  | Admin access (local kubectl)|
+
+**Local access**: Connect via Tailscale, then use `kubectl` with server `https://100.78.124.92:6443`.
+
+**CI/CD access**: The self-hosted runner in the VPC uses `https://10.118.0.2:6443`.
+
+### Regenerating API Server Certificate
+
+If you need to add new IPs to the K8s API certificate (e.g., new Tailscale IP):
+
+```bash
+ssh k8s-master01
+
+# Backup and regenerate
+sudo cp -r /etc/kubernetes/pki /etc/kubernetes/pki.bak
+sudo rm /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver.key
+sudo kubeadm init phase certs apiserver --apiserver-cert-extra-sans=10.118.0.2,100.78.124.92
+
+# Restart API server
+sudo crictl pods --name kube-apiserver -q | xargs sudo crictl stopp
+```
+
 ## CI/CD
 
 - **Grafana workflow**: Deploys k8s-monitoring stack on push to master
 - **Terraform CI**: Validates and applies infrastructure changes
-- **Self-hosted runner**: Runs in VPC for secure K8s API access (see `k8s/github-runner/`)
+- **Self-hosted runner**: Ephemeral runner in VPC for secure K8s API access (see `k8s/github-runner/`)
 
 ## Related Repositories
 
