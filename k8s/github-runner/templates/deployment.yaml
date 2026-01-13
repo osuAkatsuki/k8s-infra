@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: github-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-runner
+  template:
+    metadata:
+      labels:
+        app: github-runner
+    spec:
+      containers:
+        - name: runner
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          env:
+            - name: RUNNER_SCOPE
+              value: "org"
+            - name: ORG_NAME
+              value: {{ .Values.org | quote }}
+            - name: LABELS
+              value: {{ .Values.labels | quote }}
+            - name: RUNNER_WORKDIR
+              value: "/tmp/runner"
+            - name: ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-runner
+                  key: token
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      terminationGracePeriodSeconds: 60
