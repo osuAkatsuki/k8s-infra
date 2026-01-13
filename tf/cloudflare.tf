@@ -224,3 +224,24 @@ resource "cloudflare_record" "terraform_managed_resource_cc99f7278220097b3f5762e
   value    = "aspmx.l.google.com"
   zone_id  = var.cloudflare_zone_id
 }
+
+# TLS Configuration Rules
+# Enforce TLS 1.2+ for non-game traffic while allowing TLS 1.0 for osu! client compatibility
+# Game client subdomains (c, c4, ce, osu) use default zone TLS settings (TLS 1.0+)
+resource "cloudflare_ruleset" "tls_settings" {
+  zone_id     = var.cloudflare_zone_id
+  name        = "TLS version configuration"
+  description = "Enforce modern TLS for web traffic, allow legacy TLS for game client"
+  kind        = "zone"
+  phase       = "http_config_settings"
+
+  rules {
+    action = "set_config"
+    action_parameters {
+      min_tls_version = "1.2"
+    }
+    expression  = "(not http.host in {\"c.akatsuki.gg\" \"c4.akatsuki.gg\" \"ce.akatsuki.gg\" \"osu.akatsuki.gg\"})"
+    description = "Enforce TLS 1.2+ for non-game traffic"
+    enabled     = true
+  }
+}
