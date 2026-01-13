@@ -114,8 +114,16 @@ variable "tailscale_ipv4_range" {
   default     = "100.64.0.0/10"
 }
 
+# Toggle for k8s firewalls (set to false to quickly disable)
+variable "enable_k8s_firewalls" {
+  description = "Enable k8s master and worker firewalls"
+  type        = bool
+  default     = false
+}
+
 resource "digitalocean_firewall" "k8s-master-firewall" {
-  name = "k8s-master-firewall"
+  count = var.enable_k8s_firewalls ? 1 : 0
+  name  = "k8s-master-firewall"
 
   droplet_ids = [digitalocean_droplet.k8s-master01-droplet.id]
 
@@ -190,7 +198,8 @@ resource "digitalocean_firewall" "k8s-master-firewall" {
 }
 
 resource "digitalocean_firewall" "k8s-workers-firewall" {
-  name = "k8s-workers-firewall"
+  count = var.enable_k8s_firewalls ? 1 : 0
+  name  = "k8s-workers-firewall"
 
   droplet_ids = [
     digitalocean_droplet.k8s-worker01-droplet.id,

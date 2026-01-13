@@ -8,3 +8,6 @@ cloudflare_domain = "akatsuki.gg"
 
 aws_access_key = ""
 aws_secret_key = ""
+
+# Set to false to disable k8s firewalls (for quick rollback)
+enable_k8s_firewalls = true
