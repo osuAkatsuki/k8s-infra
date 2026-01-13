@@ -258,11 +258,11 @@ resource "digitalocean_firewall" "mysql-master01-firewall" {
 
   droplet_ids = [digitalocean_droplet.mysql-master01-droplet.id]
 
-  # SSH - Tailscale + VPC only (direct or via k8s-master01 ProxyJump)
+  # SSH - VPC only (via k8s-master01 ProxyJump)
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = [var.tailscale_ipv4_range, digitalocean_vpc.akatsuki-production-vpc.ip_range]
+    source_addresses = [digitalocean_vpc.akatsuki-production-vpc.ip_range]
   }
 
   # HTTP - Cloudflare only (required for Flexible SSL mode)
