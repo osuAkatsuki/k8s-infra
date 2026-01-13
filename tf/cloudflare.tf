@@ -225,23 +225,43 @@ resource "cloudflare_record" "terraform_managed_resource_cc99f7278220097b3f5762e
   zone_id  = var.cloudflare_zone_id
 }
 
-# TLS Configuration Rules
-# Enforce TLS 1.2+ for non-game traffic while allowing TLS 1.0 for osu! client compatibility
-# Game client subdomains (c, c4, ce, osu) use default zone TLS settings (TLS 1.0+)
-resource "cloudflare_ruleset" "tls_settings" {
-  zone_id     = var.cloudflare_zone_id
-  name        = "TLS version configuration"
-  description = "Enforce modern TLS for web traffic, allow legacy TLS for game client"
-  kind        = "zone"
-  phase       = "http_config_settings"
+# TLS Configuration
+# Set zone-wide minimum TLS to 1.2 for modern security
+# Game client subdomains (c, c4, ce, osu) override to TLS 1.0 for osu! client compatibility
 
-  rules {
-    action = "set_config"
-    action_parameters {
-      min_tls_version = "1.2"
-    }
-    expression  = "(not http.host in {\"c.akatsuki.gg\" \"c4.akatsuki.gg\" \"ce.akatsuki.gg\" \"osu.akatsuki.gg\"})"
-    description = "Enforce TLS 1.2+ for non-game traffic"
-    enabled     = true
-  }
+# Zone-wide minimum TLS version (1.2 for all traffic by default)
+resource "cloudflare_zone_setting" "min_tls_version" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "min_tls_version"
+  value      = "1.2"
+}
+
+# Per-hostname TLS overrides for game client compatibility
+# osu! game client only supports TLS 1.0
+resource "cloudflare_hostname_tls_setting" "c_tls" {
+  zone_id  = var.cloudflare_zone_id
+  hostname = "c.${var.cloudflare_domain}"
+  setting  = "min_tls_version"
+  value    = "1.0"
+}
+
+resource "cloudflare_hostname_tls_setting" "c4_tls" {
+  zone_id  = var.cloudflare_zone_id
+  hostname = "c4.${var.cloudflare_domain}"
+  setting  = "min_tls_version"
+  value    = "1.0"
+}
+
+resource "cloudflare_hostname_tls_setting" "ce_tls" {
+  zone_id  = var.cloudflare_zone_id
+  hostname = "ce.${var.cloudflare_domain}"
+  setting  = "min_tls_version"
+  value    = "1.0"
+}
+
+resource "cloudflare_hostname_tls_setting" "osu_tls" {
+  zone_id  = var.cloudflare_zone_id
+  hostname = "osu.${var.cloudflare_domain}"
+  setting  = "min_tls_version"
+  value    = "1.0"
 }
