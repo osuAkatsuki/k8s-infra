@@ -16,9 +16,13 @@ Each node has a kubelet configuration file at `/var/lib/kubelet/kubeadm-flags.en
 
 | Node | --node-ip | InternalIP | Notes |
 |------|-----------|------------|-------|
-| k8s-master01 | (none) | 159.203.62.14 (public) | Uses public IP, minimal pod traffic |
+| k8s-master01 | (none) | 159.203.62.14 (public) | No override, minimal pod traffic |
 | k8s-worker01 | 10.118.0.3 | 10.118.0.3 (VPC) | Uses VPC IP for kubelet API |
 | k8s-worker02 | 10.118.0.7 | 10.118.0.7 (VPC) | Uses VPC IP for kubelet API |
+
+**Note**: The `--node-ip` flag controls what kubelet reports as InternalIP. Workers use VPC IPs
+to route kubelet API traffic over the private network. The master doesn't override this since
+it handles minimal pod traffic, but it still has a VPC IP (10.118.0.2) used by flannel.
 
 ### Applying Changes
 
@@ -38,10 +42,13 @@ systemctl restart kubelet
 kubectl get nodes
 ```
 
-### VPC IP Reference
+## VPC IP Reference
 
-From DigitalOcean VPC (10.118.0.0/20):
-- k8s-master01: 159.203.62.14 (public only, not on VPC for control plane)
-- k8s-worker01: 10.118.0.3
-- k8s-worker02: 10.118.0.7
-- mysql-master01: 10.118.0.4
+DigitalOcean VPC: 10.118.0.0/20 (NYC1)
+
+| Host | Public IP | VPC IP (eth1) |
+|------|-----------|---------------|
+| k8s-master01 | 159.203.62.14 | 10.118.0.2 |
+| k8s-worker01 | 138.197.146.243 | 10.118.0.3 |
+| k8s-worker02 | 68.183.194.110 | 10.118.0.7 |
+| mysql-master01 | - | 10.118.0.4 |
