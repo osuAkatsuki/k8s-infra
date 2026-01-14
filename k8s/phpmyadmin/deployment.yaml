@@ -28,6 +28,8 @@ spec:
           value: "3306"
         - name: PMA_ARBITRARY
           value: "1"
+        - name: PMA_ABSOLUTE_URI
+          value: "https://old.akatsuki.gg/phpmyadmin/"
         resources:
           requests:
             cpu: 100m
