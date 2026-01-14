@@ -38,9 +38,15 @@ spec:
           volumeMounts:
             - name: docker-sock
               mountPath: /var/run/docker.sock
+            - name: kubectl
+              mountPath: /usr/local/bin/kubectl
       volumes:
         - name: docker-sock
           hostPath:
             path: /var/run/docker.sock
             type: Socket
+        - name: kubectl
+          hostPath:
+            path: /usr/bin/kubectl
+            type: File
       terminationGracePeriodSeconds: 60
