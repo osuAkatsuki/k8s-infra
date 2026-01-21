@@ -1,0 +1,43 @@
+# Kyverno Helm values
+# Minimal resource configuration for small clusters
+
+admissionController:
+  replicas: 1
+  resources:
+    limits:
+      memory: 384Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+backgroundController:
+  replicas: 1
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+cleanupController:
+  replicas: 1
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+reportsController:
+  replicas: 1
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# Fail open if Kyverno is unavailable (prevents blocking deployments)
+config:
+  webhooks:
+    - failurePolicy: Ignore
