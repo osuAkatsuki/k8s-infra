@@ -20,6 +20,7 @@ spec:
                 - Pod
       exclude:
         any:
+          # System namespaces
           - resources:
               namespaces:
                 - kube-system
@@ -27,22 +28,32 @@ spec:
                 - kube-flannel
                 - github-runner
                 - grafana
-          # Exclude CronJob pods (they run to completion)
+          # CronJob pods (they run to completion)
           - resources:
               selector:
                 matchExpressions:
                   - key: job-name
                     operator: Exists
-      preconditions:
-        all:
-          # Only require probes for services (pods with app label ending in -api or -production that are NOT background workers)
-          - key: "{{ request.object.metadata.name }}"
-            operator: AnyNotIn
-            value:
-              - "*-discord-bot-*"
-              - "*-pubsub-daemon-*"
-              - "*-amqp-processor-*"
-              - "*-processor-production-*"
+          # Background workers - discord bots
+          - resources:
+              names:
+                - "*-discord-bot-*"
+          # Background workers - pubsub daemons
+          - resources:
+              names:
+                - "*-pubsub-daemon-*"
+          # Background workers - AMQP processors
+          - resources:
+              names:
+                - "*-amqp-processor-*"
+          # Background workers - other processors
+          - resources:
+              names:
+                - "*-processor-production-*"
+          # Background workers - cleanup crons (non-Job pods)
+          - resources:
+              names:
+                - "*-cleanup-cron-*"
       validate:
         message: "Web service containers must have readinessProbe defined."
         pattern:
