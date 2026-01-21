@@ -36,8 +36,3 @@ reportsController:
     requests:
       cpu: 50m
       memory: 64Mi
-
-# Fail open if Kyverno is unavailable (prevents blocking deployments)
-config:
-  webhooks:
-    - failurePolicy: Ignore
