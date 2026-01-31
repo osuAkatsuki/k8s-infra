@@ -1,0 +1,125 @@
+name: "Monitoring Stack Deployment"
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'k8s/monitoring/**'
+      - '.github/workflows/monitoring.yml'
+  workflow_dispatch:
+
+env:
+  # Grafana Cloud (keep during transition)
+  PROMETHEUS_USER: ${{ secrets.PROMETHEUS_USER }}
+  GRAFANA_USER: ${{ secrets.GRAFANA_USER }}
+  GRAFANA_SECRET: ${{ secrets.GRAFANA_SECRET }}
+  # Database credentials for exporters
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_SCHEMA: ${{ secrets.DB_SCHEMA }}
+  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+  # Wasabi S3 credentials
+  WASABI_ACCESS_KEY: ${{ secrets.WASABI_ACCESS_KEY }}
+  WASABI_SECRET_KEY: ${{ secrets.WASABI_SECRET_KEY }}
+  # Grafana admin
+  GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+
+jobs:
+  deploy-monitoring:
+    runs-on: [self-hosted, vpc]
+
+    steps:
+      - name: Check out latest commit
+        uses: actions/checkout@v4
+
+      - name: Get kubeconfig from github secrets
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          sudo chown $(id -u):$(id -g) $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Install helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.19.2"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install helm-diff
+        run: helm plugin install https://github.com/databus23/helm-diff || true
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+
+      - name: Generate helm values with secrets
+        run: |
+          envsubst < k8s/monitoring/loki-values.yaml > /tmp/loki-values.yaml
+          envsubst < k8s/monitoring/mimir-values.yaml > /tmp/mimir-values.yaml
+          envsubst < k8s/monitoring/grafana-values.yaml > /tmp/grafana-values.yaml
+          envsubst < k8s/monitoring/alloy-values.yaml > /tmp/alloy-values.yaml
+
+      # Deploy Loki
+      - name: Diff Loki
+        run: |
+          helm diff upgrade --allow-unreleased --color=true \
+            --namespace monitoring \
+            --values /tmp/loki-values.yaml \
+            loki grafana/loki
+
+      - name: Deploy Loki
+        run: |
+          helm upgrade --install --atomic --wait --timeout 10m \
+            --namespace monitoring --create-namespace \
+            --values /tmp/loki-values.yaml \
+            loki grafana/loki
+
+      # Deploy Mimir
+      - name: Diff Mimir
+        run: |
+          helm diff upgrade --allow-unreleased --color=true \
+            --namespace monitoring \
+            --values /tmp/mimir-values.yaml \
+            mimir grafana/mimir-distributed
+
+      - name: Deploy Mimir
+        run: |
+          helm upgrade --install --atomic --wait --timeout 10m \
+            --namespace monitoring --create-namespace \
+            --values /tmp/mimir-values.yaml \
+            mimir grafana/mimir-distributed
+
+      # Deploy Grafana
+      - name: Diff Grafana
+        run: |
+          helm diff upgrade --allow-unreleased --color=true \
+            --namespace monitoring \
+            --values /tmp/grafana-values.yaml \
+            grafana grafana/grafana
+
+      - name: Deploy Grafana
+        run: |
+          helm upgrade --install --atomic --wait --timeout 10m \
+            --namespace monitoring --create-namespace \
+            --values /tmp/grafana-values.yaml \
+            grafana grafana/grafana
+
+      # Deploy Alloy (metrics/logs collector)
+      - name: Diff Alloy
+        run: |
+          helm diff upgrade --allow-unreleased --color=true \
+            --namespace monitoring \
+            --values /tmp/alloy-values.yaml \
+            alloy grafana/alloy
+
+      - name: Deploy Alloy
+        run: |
+          helm upgrade --install --atomic --wait --timeout 10m \
+            --namespace monitoring --create-namespace \
+            --values /tmp/alloy-values.yaml \
+            alloy grafana/alloy
