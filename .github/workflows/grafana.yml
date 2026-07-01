@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Check out latest commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Get kubeconfig from github secrets
         run: |
@@ -33,7 +33,7 @@ jobs:
           chmod 600 $HOME/.kube/config
 
       - name: Install helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v5
         with:
           version: "v3.19.2"
           token: ${{ secrets.GITHUB_TOKEN }}
