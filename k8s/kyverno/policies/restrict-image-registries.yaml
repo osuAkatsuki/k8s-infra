@@ -1,0 +1,88 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict Image Registries
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/description: >-
+      Only allow container images from approved registries to ensure
+      supply chain security and prevent pulling from untrusted sources.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-registries
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: >-
+          Image '{{ request.object.spec.containers[].image }}' is not from an approved registry.
+          Allowed registries: osuakatsuki/*, registry.k8s.io/*, docker.io/flannel/*,
+          docker.io/grafana/*, ghcr.io/grafana/*, quay.io/prometheus/*,
+          myoung34/github-runner*, phpmyadmin/phpmyadmin*
+        foreach:
+          - list: "request.object.spec.containers"
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.image }}"
+                    operator: NotEquals
+                    value: ""
+                  - key: "{{ element.image }}"
+                    operator: AnyNotIn
+                    value:
+                      - "osuakatsuki/*"
+                      - "docker.io/osuakatsuki/*"
+                      - "registry.k8s.io/*"
+                      - "docker.io/flannel/*"
+                      - "flannel/*"
+                      - "docker.io/grafana/*"
+                      - "grafana/*"
+                      - "ghcr.io/grafana/*"
+                      - "quay.io/prometheus/*"
+                      - "myoung34/github-runner*"
+                      - "docker.io/myoung34/github-runner*"
+                      - "phpmyadmin/phpmyadmin*"
+                      - "docker.io/phpmyadmin/phpmyadmin*"
+    - name: validate-init-container-registries
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.initContainers || `[]` | length(@) }}"
+            operator: GreaterThan
+            value: 0
+      validate:
+        message: >-
+          Init container image is not from an approved registry.
+        foreach:
+          - list: "request.object.spec.initContainers"
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.image }}"
+                    operator: NotEquals
+                    value: ""
+                  - key: "{{ element.image }}"
+                    operator: AnyNotIn
+                    value:
+                      - "osuakatsuki/*"
+                      - "docker.io/osuakatsuki/*"
+                      - "registry.k8s.io/*"
+                      - "docker.io/flannel/*"
+                      - "flannel/*"
+                      - "docker.io/grafana/*"
+                      - "grafana/*"
+                      - "ghcr.io/grafana/*"
+                      - "quay.io/prometheus/*"
+                      - "myoung34/github-runner*"
+                      - "docker.io/myoung34/github-runner*"
+                      - "phpmyadmin/phpmyadmin*"
+                      - "docker.io/phpmyadmin/phpmyadmin*"

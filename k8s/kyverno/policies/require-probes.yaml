@@ -1,0 +1,63 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-probes
+  annotations:
+    policies.kyverno.io/title: Require Probes
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/description: >-
+      Containers should have readiness and liveness probes defined
+      to ensure proper health checking and traffic management.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-probes
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          # System namespaces
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - kube-flannel
+                - github-runner
+                - grafana
+          # CronJob pods (they run to completion)
+          - resources:
+              selector:
+                matchExpressions:
+                  - key: job-name
+                    operator: Exists
+          # Background workers - discord bots
+          - resources:
+              names:
+                - "*-discord-bot-*"
+          # Background workers - pubsub daemons
+          - resources:
+              names:
+                - "*-pubsub-daemon-*"
+          # Background workers - AMQP processors
+          - resources:
+              names:
+                - "*-amqp-processor-*"
+          # Background workers - other processors
+          - resources:
+              names:
+                - "*-processor-production-*"
+          # Background workers - cleanup crons (non-Job pods)
+          - resources:
+              names:
+                - "*-cleanup-cron-*"
+      validate:
+        message: "Web service containers must have readinessProbe defined."
+        pattern:
+          spec:
+            containers:
+              - readinessProbe:
+                  periodSeconds: ">0"
