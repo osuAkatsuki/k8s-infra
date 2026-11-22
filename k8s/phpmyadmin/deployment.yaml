@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: phpmyadmin
-        image: phpmyadmin/phpmyadmin:latest
+        image: phpmyadmin/phpmyadmin:5.2.3
         ports:
         - containerPort: 80
           name: http
@@ -26,10 +26,6 @@ spec:
           value: "10.118.0.4"
         - name: PMA_PORT
           value: "3306"
-        - name: PMA_ARBITRARY
-          value: "1"
-        - name: PMA_ABSOLUTE_URI
-          value: "https://old.akatsuki.gg/phpmyadmin/"
         resources:
           requests:
             cpu: 100m

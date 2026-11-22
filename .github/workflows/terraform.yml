@@ -9,24 +9,41 @@ on:
     - master
 
 concurrency:
-  group: terraform
+  group: terraform-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-  PRIVATE_SSH_KEY: ${{ secrets.PRIVATE_SSH_KEY }}
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  CLOUDFLARE_DOMAIN: ${{ secrets.CLOUDFLARE_DOMAIN }}
-  KUBECONFIG: ${{ secrets.KUBECONFIG }}
+permissions:
+  contents: read
 
 jobs:
-  terraform-plan:
-    name: 'Terraform Plan'
+  terraform-validate:
+    name: 'Terraform Validate'
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./tf
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - uses: hashicorp/setup-terraform@v4
+    - run: terraform fmt -check
+    - run: terraform init -backend=false -input=false
+    - run: terraform validate
+
+  terraform-deploy:
+    name: 'Terraform Plan and Apply'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: [self-hosted, vpc]
-    outputs:
-      tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
+    env:
+      DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+      PRIVATE_SSH_KEY: ${{ secrets.PRIVATE_SSH_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_DOMAIN: ${{ secrets.CLOUDFLARE_DOMAIN }}
+      DEPLOY_KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
     steps:
     - name: Checkout
@@ -44,12 +61,13 @@ jobs:
 
     - name: Write Kubeconfig to Disk
       run: |
-        mkdir -p ~/.kube
-        echo "$KUBECONFIG" > ~/.kube/config
+        config="$RUNNER_TEMP/terraform-kubeconfig"
+        (umask 077 && printf '%s\n' "$DEPLOY_KUBECONFIG" > "$config")
+        printf 'KUBECONFIG=%s\n' "$config" >> "$GITHUB_ENV"
 
     - name: Terraform Init
       working-directory: ./tf
-      run: terraform init
+      run: terraform init -input=false -backend-config="config_path=$KUBECONFIG"
 
     - name: Terraform Format
       working-directory: ./tf
@@ -73,93 +91,18 @@ jobs:
         -out tfplan \
         || export exitcode=$?
 
-        echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+        echo "exitcode=$exitcode" >> "$GITHUB_OUTPUT"
 
-        if [ $exitcode -eq 1 ]; then
-          echo Terraform Plan Failed!
-          exit 1
-        else
-          exit 0
-        fi
-
-    - name: Publish Terraform Plan
-      uses: actions/upload-artifact@v7
-      with:
-        name: tfplan
-        path: tf/tfplan
-
-    - name: Create String Output
-      id: tf-plan-string
-      working-directory: ./tf
-      run: |
-        TERRAFORM_PLAN=$(terraform show -no-color tfplan)
-
-        delimiter="$(openssl rand -hex 8)"
-        echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
-        echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
-        echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
-        echo "" >> $GITHUB_OUTPUT
-        echo '```terraform' >> $GITHUB_OUTPUT
-        echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
-        echo '```' >> $GITHUB_OUTPUT
-        echo "</details>" >> $GITHUB_OUTPUT
-        echo "${delimiter}" >> $GITHUB_OUTPUT
-
-    - name: Publish Terraform Plan to Task Summary
-      env:
-        SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
-      run: |
-        echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-    - name: Push Terraform Output to PR
-      if: github.ref != 'refs/heads/master'
-      uses: actions/github-script@v9
-      env:
-        SUMMARY: "${{ steps.tf-plan-string.outputs.summary }}"
-      with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const body = `${process.env.SUMMARY}`;
-            github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: body
-            })
-
-  terraform-apply:
-    name: 'Terraform Apply'
-    if: github.ref == 'refs/heads/master' && needs.terraform-plan.outputs.tfplanExitCode == 2
-    runs-on: [self-hosted, vpc]
-    needs: [terraform-plan]
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v7
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v4
-
-    - name: Write Kubeconfig to Disk
-      run: |
-        mkdir -p ~/.kube
-        echo "$KUBECONFIG" > ~/.kube/config
-
-    - name: Terraform Init
-      working-directory: ./tf
-      run: terraform init
-
-    - name: Download Terraform Plan
-      uses: actions/download-artifact@v8
-      with:
-        name: tfplan
-        path: tf
+        case "$exitcode" in
+          0|2) exit 0 ;;
+          *) exit "$exitcode" ;;
+        esac
 
     - name: Terraform Apply
+      if: steps.tf-plan.outputs.exitcode == '2'
       working-directory: ./tf
-      run: terraform apply -auto-approve -lock-timeout=5m tfplan
+      run: terraform apply -input=false -lock-timeout=5m tfplan
+
+    - name: Remove deployment files
+      if: always()
+      run: rm -f tf/tfplan "$RUNNER_TEMP/terraform-kubeconfig"
