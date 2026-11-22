@@ -105,7 +105,6 @@ sudo crictl pods --name kube-apiserver -q | xargs sudo crictl stopp
 
 ## CI/CD
 
-- **Grafana workflow**: Deploys k8s-monitoring stack on push to master
 - **Terraform CI**: Validates and applies infrastructure changes
 - **Self-hosted runner**: Ephemeral runner in VPC for secure K8s API access (see `k8s/github-runner/`)
 
